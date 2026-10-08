@@ -1,87 +1,87 @@
-# Week 3 Lecture Notes — Structures, Modules, Builds, and Debugging
+# 第 3 週課堂講義 — Structures、Modules、Builds 與 Debugging
 
-> September 22, 2026 · Source lineage: previous structures, multi-file build,
-> program-style, and debugging notes
+> 2026 年 9 月 22 日 · 來源沿革：先前的 structures、multi-file build、
+> program-style 與 debugging 講義
 
-> Python bridge: [Python Contrast Companion for Week 3](week03_python_companion.md)
-
----
-
-## Student route
-
-- **Core:** state a `struct` invariant, separate declarations from definitions,
-  compile multiple translation units, and diagnose one failure from evidence.
-- **Practice:** complete the [Week 3 exercise](lecture_exercises/week03_ex.md)
-  before comparing with [the complete example](examples.c).
-- **Supporting ideas:** build-system conveniences are useful, but the required
-  model is source files to object files to one linked program.
-- **Python bridge:** use the companion when fixed-layout records or separate
-  compilation have no direct Python analogue.
+> Python 銜接：[第 3 週 Python 對照補充教材](week03_python_companion.md)
 
 ---
 
-## Learning objectives
+## 學習路線
 
-By the end of this lecture, you should be able to:
-
-1. Model a record with `struct`, `enum`, and `typedef` appropriately.
-2. Separate a public interface from a private implementation.
-3. Explain declarations, definitions, object files, and link errors.
-4. Build and debug a multi-file C program.
-5. State and check representation invariants.
+- **核心：**陳述一個 `struct` invariant、區分 declarations 與 definitions、
+  compile 多個 translation units，並根據證據診斷一項故障。
+- **練習：**完成[第 3 週練習](lecture_exercises/week03_ex.md)，
+  再與[完整範例](examples.c)比較。
+- **輔助概念：**build-system 提供的便利功能很實用，但必須掌握的
+  模型是 source files 轉為 object files，再成為一個 linked program。
+- **Python 銜接：**當 fixed-layout records 或 separate
+  compilation 沒有直接對應的 Python 概念時，請使用補充教材。
 
 ---
 
-## Three-hour plan
+## 學習目標
 
-| Hour | Main question | In-class production |
+完成本次課堂後，你應該能夠：
+
+1. 適當使用 `struct`、`enum` 與 `typedef` 建立 record 模型。
+2. 將 public interface 與 private implementation 分開。
+3. 解釋 declarations、definitions、object files 與 link errors。
+4. Build 並 debug 一個 multi-file C 程式。
+5. 陳述並檢查 representation invariants。
+
+---
+
+## 三小時課程規劃
+
+| 小時 | 主要問題 | 課堂產出 |
 |------|---------------|---------------------|
-| 1 | How do records become reliable abstractions? | Design tokens and rational values with invariants |
-| 2 | How do source files become one program? | Build a three-file module and diagnose link failures |
-| 3 | How do tests and tools turn failure into evidence? | Debug a seeded multi-file defect and add a regression test |
+| 1 | records 如何成為可靠的 abstractions？ | 設計具有 invariants 的 tokens 與 rational values |
+| 2 | source files 如何成為一個程式？ | Build 一個 three-file module 並診斷 link failures |
+| 3 | tests 與 tools 如何把故障轉為證據？ | Debug 一項刻意置入的 multi-file 缺陷，並新增 regression test |
 
-Each hour interleaves about 35–45 minutes of explanation and live coding with
-roughly 15–20 minutes of core practice. The remaining time supports questions,
-transitions, and a short break. Exercises labelled **Extension** can move to the
-lab or independent study when the class needs more time on a core idea.
+每小時交錯安排約 35–45 分鐘的講解與現場寫程式，
+以及約 15–20 分鐘的核心練習。其餘時間用於提問、
+課程銜接與短暫休息。如果班上需要更多時間掌握核心概念，標示為 **延伸** 的練習
+可以移到 lab 或自主學習時進行。
 
-### Inline practice routine
+### 隨堂練習流程
 
-Each **Try it now** activity follows the same short cycle:
+每個**立即練習**活動都遵循相同的簡短循環：
 
-1. predict the result, state change, build artifact, or diagnostic;
-2. write or edit the smallest relevant fragment;
-3. compile C with `-std=c17 -Wall -Wextra -Wpedantic`;
-4. run the stated normal and boundary cases; and
-5. explain which representation invariant or build rule justifies the result.
+1. 預測結果、state change、build artifact 或 diagnostic；
+2. 撰寫或修改最小的相關片段；
+3. 使用 `-std=c17 -Wall -Wextra -Wpedantic` compile C；
+4. 執行指定的一般案例與 boundary cases；以及
+5. 說明哪個 representation invariant 或 build rule 能支持這個結果。
 
-Only the question is initially visible. Expand **Reveal solution** after making
-and checking an attempt. Each solution identifies expected output, build
-evidence, or the reason a declaration-only example has no run-time output.
+一開始只顯示題目。完成並檢查嘗試後，再開啟**展開解答**。
+每份解答會指出預期輸出、build
+證據，或只有 declaration 的範例為何沒有 run-time output。
 
-- **Core live:** part of the planned in-class route.
-- **Extension:** additional practice for the lab, a break, or later study.
+- **課堂核心：**屬於規劃中的課堂學習路線。
+- **延伸：**供 lab、課間休息或日後自學使用的額外練習。
 
-The core-live exercises total about 19 minutes in Hour 1, 17 minutes in Hour 2,
-and 19 minutes in Hour 3.
+課堂核心練習在第 1 小時合計約 19 分鐘、第 2 小時約 17 分鐘，
+第 3 小時約 19 分鐘。
 
 ---
 
-## Hour 1 — Records, tagged data, and invariants
+## 第 1 小時 — Records、tagged data 與 invariants
 
-> **Hour 1 route:** [Structures group related values](#1-structures-group-related-values)
-> → [Tagged alternatives with `enum`](#2-tagged-alternatives-with-enum)
-> → [Invariants turn records into abstractions](#3-invariants-turn-records-into-abstractions)
-> → [Designated initializers and partial initialization](#designated-initializers-and-partial-initialization)
+> **第 1 小時路線：**[Structures 會把相關的值組合在一起](#1-structures-會把相關的值組合在一起)
+> → [使用 `enum` 的 tagged alternatives](#2-使用-enum-的-tagged-alternatives)
+> → [Invariants 讓 records 成為 abstractions](#3-invariants-讓-records-成為-abstractions)
+> → [Designated initializers 與 partial initialization](#designated-initializers-與-partial-initialization)
 > → [Tagged unions](#tagged-unions)
-> → [design exercise](#try-it-now-core-live--hour-1-design-exercise-5-minutes)
+> → [設計練習](#立即練習-課堂核心--第-1-小時設計練習5-分鐘)
 
-### 1. Structures group related values
+### 1. Structures 會把相關的值組合在一起
 
-A Python dictionary or simple class can group heterogeneous fields. The C
-equivalent declares a fixed set and order of members. The compiler chooses
-target-dependent offsets and may insert padding between members, but every
-`struct Student` object has the same representation within one program:
+Python dictionary 或簡單的 class 可以組合不同種類的 fields。在 C 中，
+對應的作法是宣告固定的 members 集合與順序。compiler 會選擇
+依 target 而定的 offsets，並可能在 members 之間插入 padding，但每個
+`struct Student` object 在同一個程式內都有相同的 representation：
 
 ```c
 #include <stdio.h>
@@ -106,46 +106,46 @@ one Student object (conceptual, not to scale)
 └────────┴──────────────────────────────┴──────────┴─────────┘
 ```
 
-Member order is preserved, but exact offsets, padding, and total size belong to
-the implementation. Use `sizeof(struct Student)` when the actual object size is
-needed; do not compute it by manually adding the member sizes.
+Member 順序會保留，但確切的 offsets、padding 與總大小由
+implementation 決定。需要實際 object 大小時，請使用 `sizeof(struct Student)`；
+不要手動相加各 member 的大小來計算。
 
-The dot operator selects a member of a structure object. Here `student.name` is
-the embedded 32-element character array, and `student.grade` is a `double`.
-The positional initializer follows member order; designated initializers later
-make the correspondence explicit.
+dot operator 會選取 structure object 的一個 member。這裡的 `student.name` 是
+內嵌的 32-element character array，而 `student.grade` 是 `double`。
+positional initializer 遵循 member 順序；後面介紹的 designated initializers
+會明確表達這些對應關係。
 
-The complete program prints:
+完整程式會印出：
 
 ```text
 Ada: 92.5
 ```
 
-Inside the same block, assignment or initialization from another structure
-copies all members into a distinct structure object:
+在同一個 block 內，從另一個 structure 進行 assignment 或 initialization，
+會將所有 members 複製到另一個獨立的 structure object：
 
 ```c
 struct Student copy = student;
 ```
 
-An array member is copied as part of the structure even though a standalone
-array cannot be assigned. A pointer member, by contrast, copies only its pointer
-value; it does not copy the separate object to which that pointer refers.
-Passing a structure by value also copies all its members. Pass a pointer when a
-function must modify the caller's record or when copying a large record would
-be needlessly expensive.
+array member 會隨 structure 一起複製，即使獨立的
+array 無法被 assigned。相較之下，pointer member 只會複製它的 pointer
+value；不會複製該 pointer 所指向的另一個 object。
+以 pass by value 傳遞 structure 也會複製所有 members。當
+function 必須修改 caller 的 record，或複製大型 record 會產生
+不必要的成本時，請傳遞 pointer。
 
-#### Try it now [Core live] — observe a structure copy (3 minutes)
+#### 立即練習 [課堂核心] — 觀察 structure copy（3 分鐘）
 
-Start from the complete program above. Add `copy` inside `main`, change
-`copy.name[0]` to `'E'`, and change `copy.grade` to `88.0`. Print both records.
-Predict whether changing the copy also changes the embedded array or grade in
-`student`.
+從上面的完整程式開始。加入 `copy` 到 `main` 內，將
+`copy.name[0]` 改為 `'E'`，並將 `copy.grade` 改為 `88.0`。印出兩個 records。
+預測修改 copy 是否也會改變
+`student` 內嵌的 array 或 grade。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-This `main` belongs after the `struct Student` declaration above:
+這個 `main` 應放在上面的 `struct Student` declaration 之後：
 
 ```c
 #include <stdio.h>
@@ -162,10 +162,10 @@ int main(void) {
 }
 ```
 
-Structure assignment copied every member, including all 32 elements of
-`name`. The two records therefore contain independent arrays.
+Structure assignment 複製了每個 member，包含
+`name` 的全部 32 個 elements。因此，兩個 records 包含彼此獨立的 arrays。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 original=Ada 92.5
@@ -176,7 +176,7 @@ copy=Eda 88.0
 
 ---
 
-### 2. Tagged alternatives with `enum`
+### 2. 使用 `enum` 的 tagged alternatives
 
 ```c
 enum TokenKind { TokenInteger, TokenPlus, TokenMinus, TokenEnd, TokenInvalid };
@@ -187,33 +187,33 @@ struct Token {
 };
 ```
 
-An `enum` gives names to a finite set of integral cases. A variable of type
-`enum TokenKind` should contain one of the declared alternatives. The `kind`
-member tells us whether the remaining fields are meaningful: `value` holds a
-parsed integer only when `kind == TokenInteger`. This tag-first rule becomes
-part of the representation invariant and later supports tokens and syntax-tree
-nodes in the compiler project.
+`enum` 為有限集合中的 integral cases 命名。type 為
+`enum TokenKind` 的 variable 應包含其中一個已宣告的 alternatives。`kind`
+member 告訴我們其餘 fields 是否具有意義：`value` 只有在
+`kind == TokenInteger` 時才存放 parsed integer。這項 tag-first 規則會成為
+representation invariant 的一部分，之後也會支援 compiler 專案中的 tokens 與 syntax-tree
+nodes。
 
-Use `typedef` to name a genuinely useful abstraction, not to hide every type:
+使用 `typedef` 為實用的 abstraction 命名，而不是隱藏每個 type：
 
 ```c
 typedef struct Token Token;
 ```
 
-Both `struct Token` and `Token` are reasonable course styles; be consistent.
+`struct Token` 與 `Token` 都是課程中合理的寫法；請保持一致。
 
-The `typedef` introduces an alias for an existing type; it does not allocate an
-object, create a run-time conversion, or define a second representation.
+`typedef` 為現有的 type 引入 alias；它不會 allocate
+object、產生 run-time conversion，或定義第二種 representation。
 
-#### Try it now [Core live] — make the tag control interpretation (3 minutes)
+#### 立即練習 [課堂核心] — 讓 tag 決定解讀方式（3 分鐘）
 
-Create one integer token containing `17` and one plus token. Print `integer 17`
-for the first and `plus` for the second. Read `value` only in the integer case.
+建立一個包含 `17` 的 integer token，以及一個 plus token。第一個印出 `integer 17`，
+第二個印出 `plus`。只有在 integer case 才讀取 `value`。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-This `main` uses the `enum TokenKind`, `struct Token`, and `Token` alias above:
+這個 `main` 使用上面的 `enum TokenKind`、`struct Token` 與 `Token` alias：
 
 ```c
 #include <stddef.h>
@@ -235,9 +235,9 @@ int main(void) {
 }
 ```
 
-The loop inspects the tag before reading the integer payload.
+loop 會先檢查 tag，再讀取 integer payload。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 integer 17
@@ -248,16 +248,16 @@ plus
 
 ---
 
-### 3. Invariants turn records into abstractions
+### 3. Invariants 讓 records 成為 abstractions
 
-A representation invariant is a property that must hold whenever clients can
-observe an object through the public interface. It narrows many possible field
-combinations to the states the program promises to understand. For a rational
-number in normalized form:
+representation invariant 是一項必須成立的性質：只要 clients 能透過
+public interface 觀察 object，就必須滿足它。它把許多可能的 field
+組合限縮為程式承諾能理解的 states。以 normalized form 的 rational
+number 為例：
 
-- denominator is nonzero;
-- denominator is positive;
-- numerator and denominator share no common factor except one.
+- denominator 不為零；
+- denominator 為正；
+- numerator 與 denominator 除了 1 以外沒有 common factor。
 
 ```c
 #include <stdbool.h>
@@ -270,23 +270,23 @@ typedef struct Rational {
 bool rational_make(int numerator, int denominator, Rational* out);
 ```
 
-The constructor-like function returns `true` only after publishing a normalized
-value through `out`. Its contract requires a valid output pointer, rejects a
-zero denominator, and leaves the destination unchanged on failure. This course
-implementation also rejects `INT_MIN` in either numeric argument so every
-negation performed by the normalization algorithm is guaranteed representable,
-without depending on whether an implementation's signed range is symmetric.
-The full implementation appears in Hour 2 as part of a multi-file module; the
-separate starter asks you to attempt it before revealing that implementation.
+這個類似 constructor 的 function，只有在提供 normalized value 之後才回傳 `true`；
+value 會透過 `out` 提供。它的 contract 要求有效的 output pointer、拒絕
+值為零的 denominator，並在失敗時維持 destination 不變。本課程的
+implementation 也拒絕任一 numeric argument 為 `INT_MIN`，以確保
+normalization algorithm 執行的每次 negation 都能被表示，
+不必依賴 implementation 的 signed range 是否對稱。
+完整 implementation 會在第 2 小時作為 multi-file module 的一部分出現；
+獨立的 starter 會要求你先嘗試，再展開該 implementation。
 
-Do not make every caller rediscover these rules. If all public creation and
-mutation paths establish the invariant, later functions may reason from one
-canonical representation: `1/2` rather than any of `2/4`, `-1/-2`, or `3/6`.
+不要讓每個 caller 都得重新摸索這些規則。如果所有 public creation 與
+mutation paths 都能建立 invariant，後續 functions 就能基於單一
+canonical representation 推理：例如 `1/2`，而不是 `2/4`、`-1/-2` 或 `3/6`。
 
-#### Try it now [Core live] — normalize on paper first (4 minutes)
+#### 立即練習 [課堂核心] — 先在紙上進行 normalize（4 分鐘）
 
-For each request below, predict success or failure and, on success, the stored
-members. Do not write the implementation yet.
+對下面每個 request，預測成功或失敗，以及成功時儲存的
+members。先不要撰寫 implementation。
 
 - `rational_make(6, 8, &value)`
 - `rational_make(2, -4, &value)`
@@ -295,48 +295,48 @@ members. Do not write the implementation yet.
 - `rational_make(1, 2, NULL)`
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Request | Status | Stored value or reason |
+| Request | 狀態 | 儲存的 value 或原因 |
 |---------|--------|------------------------|
-| `6, 8, &value` | success | `3/4` after dividing by the common factor 2 |
-| `2, -4, &value` | success | `-1/2`; the denominator becomes positive |
-| `0, 5, &value` | success | `0/1`; zero has one canonical denominator |
-| `1, 0, &value` | failure | a rational denominator cannot be zero |
-| `1, 2, NULL` | failure | there is no valid destination to receive the result |
+| `6, 8, &value` | 成功 | 除以 common factor 2 後成為 `3/4` |
+| `2, -4, &value` | 成功 | `-1/2`；denominator 變為正值 |
+| `0, 5, &value` | 成功 | `0/1`；零有唯一的 canonical denominator |
+| `1, 0, &value` | 失敗 | rational denominator 不能為零 |
+| `1, 2, NULL` | 失敗 | 沒有有效的 destination 可接收結果 |
 
-This is a contract trace, not an executable program, so it has no standard
-output. A failed call must leave the previous destination value unchanged.
+這是 contract trace，並非 executable 程式，因此沒有 standard
+output。失敗的 call 必須維持先前的 destination value 不變。
 
 </details>
 
 ---
 
-### Designated initializers and partial initialization
+### Designated initializers 與 partial initialization
 
-> **Supporting C syntax:** designated initializers improve clarity for records,
-> but understanding structure members and invariants is more important than
-> memorizing this initializer form.
+> **輔助 C 語法：**designated initializers 讓 records 更清楚，
+> 但理解 structure members 與 invariants 比
+> 記住這種 initializer 形式更重要。
 
-C designated initializers make field meaning explicit and tolerate field order
-changes better than positional initialization:
+C designated initializers 明確表達 field 的意義，也比 positional initialization
+更能適應 field 順序的變更：
 
 ```c
 struct Student student = {.id = 1001, .name = "Ada", .grade = 92.5};
 ```
 
-Unspecified members are initialized to zero. This differs from an uninitialized
-automatic structure, whose members have indeterminate values.
+未指定的 members 會 initialized 為零。這與未 initialized 的
+automatic structure 不同；後者的 members 具有 indeterminate values。
 
-#### Try it now [Extension] — inspect partial initialization (2 minutes)
+#### 立即練習 [延伸] — 檢查 partial initialization（2 分鐘）
 
-Initialize only `.id` in a `struct Student`, then print the ID, the numeric value
-of `name[0]`, and the grade. Predict the two implicit values before compiling.
+只 initialize `.id`（位於 `struct Student`），再印出 ID、
+`name[0]` 的 numeric value 與 grade。在 compiling 之前預測兩個 implicit values。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-This `main` uses the `struct Student` definition above:
+這個 `main` 使用上面的 `struct Student` definition：
 
 ```c
 #include <stdio.h>
@@ -349,10 +349,10 @@ int main(void) {
 }
 ```
 
-Because this declaration contains an initializer, every unmentioned member and
-array element is zero-initialized.
+因為這個 declaration 包含 initializer，每個未提及的 member 與
+array element 都會 zero-initialized。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 id=1002 first-name-byte=0 grade=0.0
@@ -364,13 +364,13 @@ id=1002 first-name-byte=0 grade=0.0
 
 ### Tagged unions
 
-> **Project-oriented representation:** tagged unions prepare for the token and
-> syntax-tree alternatives used in Week 7. They are not a replacement for an
-> ordinary `struct` when every member exists at the same time.
+> **面向專案的 representation：**tagged unions 為第 7 週使用的 token 與
+> syntax-tree alternatives 做準備。當每個 member 都同時存在時，
+> 它們不能取代一般的 `struct`。
 
-A `union` overlays several members in the same storage, so only one member's
-value is active at a time. Because the storage alone does not remember which
-member is active, reliable code pairs the union with an `enum` tag:
+`union` 讓多個 members 重疊在相同的 storage 中，因此同一時間只有一個 member 的
+value 是 active。由於單靠 storage 無法記住哪個
+member 是 active，可靠的程式會將 union 與 `enum` tag 配對：
 
 ```c
 enum ValueKind { ValueInteger, ValueReal, ValueError };
@@ -385,16 +385,16 @@ struct Value {
 };
 ```
 
-Reading a union member inconsistent with `kind` violates the abstraction. This
-combination of a tag and several alternative payloads is a general technique
-for representing “exactly one of these cases.” Every function that reads the
-payload must first inspect the tag, and every function that changes the case
-must update the tag and payload together.
+讀取與 `kind` 不一致的 union member 會違反 abstraction。這種
+tag 與多個 alternative payloads 的組合，是用來表示
+「這些 cases 中恰好一個」的通用技巧。每個讀取
+payload 的 function 都必須先檢查 tag，而每個改變 case 的 function
+都必須同時更新 tag 與 payload。
 
-The `error` alternative is a borrowed pointer to an existing null-terminated
-string. The structure does not own or copy that string, so the pointed-to text
-must remain valid for every use of the `Value`. A string literal satisfies that
-lifetime requirement for the entire program.
+`error` alternative 是指向現有 null-terminated
+string 的 borrowed pointer。structure 不會 own 或複製該 string，因此指向的文字
+必須在每次使用 `Value` 時都保持有效。string literal 在整個程式期間
+都滿足這項 lifetime 要求。
 
 ```c
 #include <stdio.h>
@@ -414,19 +414,19 @@ void value_print(struct Value value) {
 }
 ```
 
-The function takes this small teaching record by value. It checks `kind` before
-selecting the matching nested member such as `value.as.real`.
+這個 function 以 pass by value 接收這個小型教學 record。它會先檢查 `kind`，
+再選取對應的 nested member，例如 `value.as.real`。
 
-#### Try it now [Core live] — keep tag and payload synchronized (4 minutes)
+#### 立即練習 [課堂核心] — 保持 tag 與 payload 同步（4 分鐘）
 
-Construct one value of each kind with designated initializers, call
-`value_print`, and predict the output. Then explain why changing only `.kind`
-after construction would break the invariant.
+使用 designated initializers 建立每種 kind 各一個 value，呼叫
+`value_print` 並預測 output。接著說明為何 construction 後只改變 `.kind`
+會破壞 invariant。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-This `main` uses the `ValueKind`, `Value`, and `value_print` definitions above:
+這個 `main` 使用上面的 `ValueKind`、`Value` 與 `value_print` definitions：
 
 ```c
 int main(void) {
@@ -441,7 +441,7 @@ int main(void) {
 }
 ```
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 integer=42
@@ -449,27 +449,27 @@ real=3.5
 error=bad input
 ```
 
-Changing only `ratio.kind` to `ValueInteger` would make the tag claim that the
-overlapping bytes contain a stored `long`, even though the last stored union
-member was `real`. A public operation must update both parts together.
+若只把 `ratio.kind` 改為 `ValueInteger`，tag 就會宣稱
+重疊的 bytes 中存放的是 `long`，即使最後儲存的 union
+member 是 `real`。public operation 必須同時更新這兩部分。
 
 </details>
 
 ---
 
-### Try it now [Core live] — Hour 1 design exercise (5 minutes)
+### 立即練習 [課堂核心] — 第 1 小時設計練習（5 分鐘）
 
-Design a `struct Date` and functions `date_make`, `date_next`, and `date_print`.
-Decide which representation and operations belong in the public header. State
-leap-year and valid-day invariants and give boundary tests for February, month
-transitions, and invalid construction. After Week 4, revisit whether hiding the
-representation behind an opaque pointer would improve the interface enough to
-justify its ownership costs.
+設計 `struct Date` 與 functions `date_make`、`date_next`、`date_print`。
+決定哪些 representation 與 operations 應放在 public header。陳述
+閏年與有效日期的 invariants，並提供二月、月份
+交替與無效 construction 的 boundary tests。第 4 週之後，再思考將
+representation 隱藏在 opaque pointer 後面，對 interface 的改善
+是否足以抵銷其 ownership 成本。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-One coherent public design is:
+一個一致的 public 設計如下：
 
 ```c
 #include <stdbool.h>
@@ -486,32 +486,32 @@ bool date_next(Date current, Date* out);
 void date_print(FILE* stream, Date value);
 ```
 
-The invariant requires `1 <= month && month <= 12` and a day between 1 and the
-number of days in that particular month and year. A leap year is divisible by
-4, except years divisible by 100 are not leap years unless divisible by 400.
-The operations must also state what year range they support and what happens
-when the next date would leave it.
+invariant 要求 `1 <= month && month <= 12`，且 day 必須介於 1 與
+該年該月的天數之間。閏年可被
+4 整除，但可被 100 整除的年份不是閏年，除非也可被 400 整除。
+operations 也必須說明支援的年份範圍，以及
+下一個日期超出該範圍時會發生什麼事。
 
-Minimum boundary tests include February 28 in ordinary and leap years,
-February 29 in a leap year, the last day of a 30-day month, December 31, month
-zero, month 13, and days just below and above a month's valid range. These are
-declarations and test requirements, so this design produces no run-time output
-until implementations and a driver are supplied.
+最少應有的 boundary tests 包括平年與閏年的 2 月 28 日、
+閏年的 2 月 29 日、30 天月份的最後一天、12 月 31 日、月份
+0、月份 13，以及略低於與略高於某月份有效範圍的日期。這些是
+declarations 與 test 要求，因此在提供 implementations 與 driver
+之前，這個設計不會產生 run-time output。
 
 </details>
 
 ---
 
-## Hour 2 — Headers, the preprocessor, and the build graph
+## 第 2 小時 — Headers、preprocessor 與 build graph
 
-> **Hour 2 route:** [Interfaces live in headers](#4-interfaces-live-in-headers)
-> → [Separate compilation and linking](#5-separate-compilation-and-linking)
-> → [Encapsulation before opaque ownership](#encapsulation-before-opaque-ownership)
-> → [Preprocessor discipline](#preprocessor-discipline)
-> → [A minimal Makefile](#a-minimal-makefile)
-> → [failure lab](#hour-2-failure-lab)
+> **第 2 小時路線：**[Interfaces 放在 headers 中](#4-interfaces-放在-headers-中)
+> → [Separate compilation 與 linking](#5-separate-compilation-與-linking)
+> → [先掌握 encapsulation，再談 opaque ownership](#先掌握-encapsulation再談-opaque-ownership)
+> → [Preprocessor 使用原則](#preprocessor-使用原則)
+> → [最小的 Makefile](#最小的-makefile)
+> → [故障 lab](#第-2-小時故障-lab)
 
-### 4. Interfaces live in headers
+### 4. Interfaces 放在 headers 中
 
 `rational.h`:
 
@@ -533,60 +533,60 @@ void rational_print(FILE* stream, const Rational* value);
 #endif
 ```
 
-The header contains the public type and function declarations needed by both
-the implementation and its clients. It is **self-contained**: a source file may
-include `rational.h` first without relying on another header to define `bool` or
-`FILE`.
+header 包含 implementation 與 clients 都需要的 public type 與 function declarations。
+它具有 **self-contained** 特性：source file 可以
+先 include `rational.h`，而不必依賴另一個 header 來定義 `bool` 或
+`FILE`。
 
-The three preprocessor directives form a **header guard**. On the first
-inclusion, `RATIONAL_H` is not defined, so the declarations are retained and
-the macro becomes defined. A repeated inclusion skips everything through the
-matching `#endif`, preventing duplicate declarations within one translation
-unit. The guard name must be unique to this header.
+這三個 preprocessor directives 構成 **header guard**。第一次
+inclusion 時，`RATIONAL_H` 尚未 defined，因此 declarations 會保留，
+macro 也會變成 defined。重複 inclusion 時，會跳過所有內容，直到
+對應的 `#endif`，避免在同一個 translation
+unit 內出現重複 declarations。guard 名稱必須為這個 header 所獨有。
 
-`FILE` is a standard-library type declared by `<stdio.h>`. A `FILE*` is a
-handle through which functions read or write a stream such as standard output
-or an opened file. This interface accepts a stream so the formatting logic is
-not tied specifically to `stdout`; the pointer is borrowed and is not closed by
-`rational_print`.
+`FILE` 是由 `<stdio.h>` 宣告的 standard-library type。`FILE*` 是
+handle，functions 透過它讀取或寫入 stream，例如 standard output
+或已開啟的檔案。這個 interface 接受 stream，因此格式化邏輯
+不會綁定在 `stdout` 上；pointer 是 borrowed，且不會由
+`rational_print` 關閉。
 
-#### Try it now [Core live] — classify the header declarations (3 minutes)
+#### 立即練習 [課堂核心] — 分類 header declarations（3 分鐘）
 
-For each line in `rational.h`, decide whether it provides a type definition, a
-function declaration, a dependency, or a preprocessor guard. Then answer: why
-does the header declare `rational_make` but not the private greatest-common-
-divisor helper?
+對 `rational.h` 的每一行，判斷它提供的是 type definition、
+function declaration、dependency，還是 preprocessor guard。接著回答：為什麼
+header 宣告 `rational_make`，卻不宣告 private greatest-common-
+divisor helper？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-- `<stdbool.h>` and `<stdio.h>` provide types used by the public declarations.
-- The guarded `typedef struct Rational ... Rational;` defines the visible record
-  and its alias.
-- The two prototypes declare public operations without defining their bodies.
-- The private helper belongs only in `rational.c`; exposing it would enlarge the
-  public interface without helping clients use rational values.
-- `#ifndef`, `#define`, and `#endif` prevent repeated inclusion in one
-  translation unit.
+- `<stdbool.h>` 與 `<stdio.h>` 提供 public declarations 使用的 types。
+- 受 guard 保護的 `typedef struct Rational ... Rational;` 定義可見的 record
+  與其 alias。
+- 兩個 prototypes 宣告 public operations，但不定義它們的 bodies。
+- private helper 只應放在 `rational.c` 中；公開它會擴大
+  public interface，卻無助於 clients 使用 rational values。
+- `#ifndef`、`#define` 與 `#endif` 會防止同一個
+  translation unit 內重複 inclusion。
 
-A header is translated only as part of a source file that includes it. These
-declarations alone therefore produce no executable and no run-time output.
+header 只會作為 include 它的 source file 的一部分進行 translation。因此，這些
+declarations 本身不會產生 executable，也不會產生 run-time output。
 
 </details>
 
-The implementation includes its own header first. This immediately exposes a
-header that is not self-contained and lets the compiler compare each definition
-with the published declaration.
+implementation 會先 include 自己的 header。這會立即揭露
+不具 self-contained 特性的 header，並讓 compiler 比較每個 definition
+與已公布的 declaration。
 
-One new member spelling appears below: `out->numerator` is shorthand for
-`(*out).numerator`—dereference the structure pointer, then select a member. A
-validity check must happen before the first `->` use. The implementation also
-uses `assert` as a development check for a violated internal precondition; Hour
-3 explains assertion behavior and why assertions do not replace ordinary input
-validation.
+下面出現一種新的 member 寫法：`out->numerator` 是
+`(*out).numerator` 的簡寫 — 先 dereference structure pointer，再選取 member。
+第一次使用 `->` 之前必須先檢查有效性。implementation 也
+使用 `assert`，在開發期間檢查遭到違反的 internal precondition；第
+3 小時會解釋 assertion 行為，以及為何 assertions 無法取代一般的 input
+validation。
 
 <details>
-<summary>Reveal `rational.c` after attempting the starter constructor</summary>
+<summary>嘗試 starter constructor 後，展開 `rational.c`</summary>
 
 ```c
 #include "rational.h"
@@ -635,17 +635,17 @@ void rational_print(FILE* stream, const Rational* value) {
 }
 ```
 
-`static` gives `gcd_positive` internal linkage, so other translation units
-cannot name that helper. Failed construction returns before either output
-member changes. This teaching representation rejects `INT_MIN`; a production
-numeric type should document or redesign that range limitation explicitly.
+`static` 讓 `gcd_positive` 具有 internal linkage，因此其他 translation units
+不能以名稱使用該 helper。construction 失敗時，會在任何 output
+member 改變之前 return。這個教學 representation 拒絕 `INT_MIN`；正式使用的
+numeric type 應明確記錄或重新設計這項 range 限制。
 
-`rational.c` has no `main`, so compiling it alone with `-c` produces an object
-file but no run-time output.
+`rational.c` 沒有 `main`，因此單獨使用 `-c` compile 它會產生 object
+file，但不會產生 run-time output。
 
 </details>
 
-A client contains the program entry point and uses only the public header:
+client 包含程式的 entry point，並且只使用 public header：
 
 `main.c`:
 
@@ -666,14 +666,14 @@ int main(void) {
 }
 ```
 
-#### Try it now [Core live] — build and run the module (5 minutes)
+#### 立即練習 [課堂核心] — build 並執行 module（5 分鐘）
 
-Create the three files exactly as shown. Predict which command produces each
-object file and which command produces the executable. Build and run the
-program, then change the request to `6/8` without editing `rational.c`.
+完全依照範例建立這三個檔案。預測哪個 command 會產生各個
+object file，以及哪個 command 會產生 executable。Build 並執行
+程式，再將 request 改為 `6/8`，不要修改 `rational.c`。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```sh
 cc -std=c17 -Wall -Wextra -Wpedantic -g -c rational.c -o rational.o
@@ -682,17 +682,17 @@ cc rational.o main.o -o rational_demo
 ./rational_demo
 ```
 
-The successful build commands normally print nothing. Their file outputs are
-`rational.o`, `main.o`, and `rational_demo`, respectively.
+成功的 build commands 通常不會印出任何內容。它們產生的檔案依序是
+`rational.o`、`main.o` 與 `rational_demo`。
 
-**Expected program output for `2/-4`:**
+**`2/-4` 的預期程式輸出：**
 
 ```text
 -1/2
 ```
 
-After changing only the call in `main.c` to `rational_make(6, 8, &value)`, the
-program prints:
+只將 `main.c` 中的 call 改為 `rational_make(6, 8, &value)` 後，
+程式會印出：
 
 ```text
 3/4
@@ -702,12 +702,12 @@ program prints:
 
 ---
 
-### 5. Separate compilation and linking
+### 5. Separate compilation 與 linking
 
-Each `.c` file is preprocessed and compiled as its own **translation unit**.
-Including `rational.h` copies the same declarations into both units, but only
-`rational.c` supplies the public function definitions. The linker later connects
-the calls in `main.o` with those definitions in `rational.o`.
+每個 `.c` file 都會作為獨立的 **translation unit** 進行 preprocessing 與 compilation。
+Include `rational.h` 會將相同的 declarations 複製到兩個 units，但只有
+`rational.c` 提供 public function definitions。linker 之後會連接
+`main.o` 中的 calls 與 `rational.o` 中的 definitions。
 
 ```sh
 cc -std=c17 -Wall -Wextra -Wpedantic -g -c rational.c -o rational.o
@@ -732,55 +732,55 @@ flowchart LR
     main_object -->|link| executable
 ```
 
-- Each `-c` command creates one object file without linking.
-- The final command resolves cross-file references and creates the executable.
-- An **implicit declaration** diagnostic usually means a call was compiled
-  without a visible prototype.
-- A **conflicting types** diagnostic means declarations or a declaration and
-  definition disagree within a translation unit.
-- A **multiple definition** link error means more than one object exports the
-  same ordinary definition.
-- An **undefined reference** link error means no linked object supplies a
-  required definition.
+- 每個 `-c` command 都會建立一個 object file，而不進行 linking。
+- 最後一個 command 會 resolve cross-file references，並建立 executable。
+- **implicit declaration** diagnostic 通常表示編譯某個 call 時，
+  沒有可見的 prototype。
+- **conflicting types** diagnostic 表示同一個 translation unit 內的 declarations，或 declaration 與
+  definition 不一致。
+- **multiple definition** link error 表示不只一個 object exports
+  相同的一般 definition。
+- **undefined reference** link error 表示沒有 linked object 提供
+  所需的 definition。
 
-Include your own header first in its implementation file. If the header is not
-self-contained, the mistake is found close to its source.
+在 implementation file 中，先 include 自己的 header。如果 header 不具
+self-contained 特性，這個錯誤就能在接近來源的位置被發現。
 
-#### Try it now [Core live] — locate responsibility in the build graph (4 minutes)
+#### 立即練習 [課堂核心] — 在 build graph 中找出責任歸屬（4 分鐘）
 
-Predict the earliest failing stage and likely diagnostic category for each
-change. Test one change at a time and restore it before continuing.
+對每個變更，預測最早失敗的 stage 與可能的 diagnostic 類別。
+每次只測試一個變更，並在繼續之前還原。
 
-1. Remove `#include "rational.h"` from `main.c` but keep the calls.
-2. Compile both files correctly but link only `main.o`.
-3. Change the header's return type to `int` without changing `rational.c`.
-4. Restore every file and link both objects.
+1. 移除 `#include "rational.h"`（位於 `main.c`），但保留 calls。
+2. 正確 compile 兩個檔案，但只 link `main.o`。
+3. 將 header 的 return type 改為 `int`，但不修改 `rational.c`。
+4. 還原每個檔案，並 link 兩個 objects。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Change | Earliest evidence | Reason |
+| 變更 | 最早的證據 | 原因 |
 |--------|-------------------|--------|
-| Missing include in `main.c` | compilation diagnostic | `Rational` and the prototypes are not declared in that translation unit |
-| Link only `main.o` | undefined-reference link error | the client calls functions defined in omitted `rational.o` |
-| Header says `int`, source defines `bool` | conflicting-types compilation diagnostic in `rational.c` | the implementation includes the header before its definition |
-| Restored files and both objects | successful link and `-1/2` at run time | declarations and definitions agree and every reference is supplied |
+| `main.c` 中缺少 include | compilation diagnostic | 該 translation unit 中未宣告 `Rational` 與 prototypes |
+| 只 link `main.o` | undefined-reference link error | client 呼叫的 functions 定義在被省略的 `rational.o` 中 |
+| Header 寫 `int`，source 定義為 `bool` | `rational.c` 中的 conflicting-types compilation diagnostic | implementation 在自己的 definition 之前 include header |
+| 還原檔案並 link 兩個 objects | link 成功，且 run time 印出 `-1/2` | declarations 與 definitions 一致，且每個 reference 都有對應內容 |
 
-Failed compilation or linking produces no program output because no valid
-executable is created. Exact diagnostic wording depends on the toolchain.
+compilation 或 linking 失敗時，不會產生程式 output，因為沒有建立有效的
+executable。確切的 diagnostic 文字依 toolchain 而定。
 
 </details>
 
 ---
 
-### Encapsulation before opaque ownership
+### 先掌握 encapsulation，再談 opaque ownership
 
-> **Design preview:** opaque pointer interfaces become important when a module
-> must hide a dynamically owned representation. This week keeps the structure
-> visible so the separate-compilation model remains the main idea.
+> **設計預告：**當 module 必須隱藏 dynamically owned representation 時，
+> opaque pointer interfaces 就會變得重要。本週維持 structure
+> 可見，讓 separate-compilation model 仍是主要概念。
 
-A module can begin with a visible structure definition while still requiring
-clients to use its functions:
+module 可以先採用可見的 structure definition，同時仍要求
+clients 使用它的 functions：
 
 ```c
 /* counter.h */
@@ -793,83 +793,83 @@ void counter_increment(struct Counter* counter);
 long counter_value(const struct Counter* counter);
 ```
 
-The visible layout means the compiler knows how much storage a `Counter` needs,
-so a client can declare one directly. The function contracts still centralize
-valid initialization and state changes. This is convention-based
-encapsulation: the compiler does not prevent a client from writing `value`.
+可見的 layout 表示 compiler 知道 `Counter` 需要多少 storage，
+因此 client 可以直接宣告一個。function contracts 仍集中規範
+有效的 initialization 與 state changes。這是基於慣例的
+encapsulation：compiler 不會阻止 client 寫入 `value`。
 
-#### Try it now [Extension] — separate layout from permitted operations (3 minutes)
+#### 立即練習 [延伸] — 區分 layout 與允許的 operations（3 分鐘）
 
-For each declaration in `counter.h`, state what a client must establish and
-what the operation promises. Which direct member assignment can the compiler
-still accept even though it bypasses the intended interface?
+對 `counter.h` 的每個 declaration，陳述 client 必須建立的條件，
+以及 operation 的承諾。哪個直接的 member assignment 即使繞過預期的 interface，
+compiler 仍會接受？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-- `counter_initialize` requires a valid writable pointer and establishes the
-  module's initial state.
-- `counter_increment` requires a previously initialized writable object and
-  advances its value according to the module policy.
-- `counter_value` requires a valid initialized object, does not modify it, and
-  returns the observation.
-- Because the definition is visible, a client can still write
-  `counter.value = -100;`. The header communicates a convention but cannot
-  prevent this access.
+- `counter_initialize` 要求有效的 writable pointer，並建立
+  module 的 initial state。
+- `counter_increment` 要求已 initialized 的 writable object，並
+  依 module 政策遞增它的 value。
+- `counter_value` 要求有效且已 initialized 的 object，不會修改它，並
+  回傳觀察到的值。
+- 因為 definition 可見，client 仍可以寫
+  `counter.value = -100;`。header 傳達慣例，但無法
+  阻止這種存取。
 
-The header contains declarations only, so it produces no run-time output.
+header 只包含 declarations，因此不會產生 run-time output。
 
 </details>
 
-A stronger design can hide the members behind an incomplete, or **opaque**,
-structure type. Doing so normally requires clients to manipulate pointers and
-raises allocation and destruction questions. Week 4 introduces the necessary
-pointer, lifetime, and ownership model before presenting that interface. The
-ordering matters: hiding representation is useful only when we can also state
-who creates, owns, and destroys the hidden object.
+更嚴格的設計可以把 members 隱藏在 incomplete，也就是 **opaque** 的
+structure type 後面。這通常要求 clients 操作 pointers，並
+帶來 allocation 與 destruction 的問題。第 4 週會先介紹必要的
+pointer、lifetime 與 ownership model，再呈現這種 interface。
+這個順序很重要：只有當我們也能說明
+誰會 create、own 與 destroy 隱藏的 object，隱藏 representation 才有用。
 
 ---
 
-### Preprocessor discipline
+### Preprocessor 使用原則
 
-> **Supporting C tooling:** recognize header guards and simple macros, but
-> prefer typed functions and constants for ordinary program logic.
+> **輔助 C 工具：**辨識 header guards 與簡單的 macros，但
+> 一般程式邏輯應優先使用 typed functions 與 constants。
 
-Object-like macros perform token substitution and have no type:
+Object-like macros 會進行 token substitution，且沒有 type：
 
 ```c
 #define BUFFER_CAPACITY 256
 ```
 
-Function-like macros can evaluate arguments more than once:
+Function-like macros 可能對 arguments evaluate 不只一次：
 
 ```c
 #define BAD_SQUARE(x) ((x) * (x))
 /* BAD_SQUARE(i++) modifies i twice without sequencing: undefined behavior. */
 ```
 
-Prefer `enum` constants, `const` objects, and functions when they express the
-same intent. Use conditional compilation for genuine platform or build choices,
-not to hide multiple unrelated implementations in one file.
+若能表達相同意圖，請優先使用 `enum` constants、`const` objects 與 functions。
+將 conditional compilation 用於實際的 platform 或 build 選擇，
+不要用它在同一個檔案中隱藏多個不相關的 implementations。
 
-#### Try it now [Extension] — inspect substitution before execution (3 minutes)
+#### 立即練習 [延伸] — 執行之前先檢查 substitution（3 分鐘）
 
-Expand `BAD_SQUARE(i++)` by hand. Do not run the expanded expression. Replace
-the macro with a typed function that evaluates its argument once, then test that
-function with an ordinary value.
+手動展開 `BAD_SQUARE(i++)`。不要執行展開後的 expression。將
+macro 換成只 evaluate argument 一次的 typed function，再用一般的 value
+測試這個 function。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Textual substitution produces:
+Textual substitution 會產生：
 
 ```c
 ((i++) * (i++))
 ```
 
-The two unsequenced modifications of `i` make the expression undefined. Extra
-parentheses cannot repair multiple evaluation. A function evaluates its
-argument before the call and uses the resulting value through a parameter:
+對 `i` 的兩次 unsequenced modifications 讓 expression 成為 undefined。增加
+parentheses 無法修復 multiple evaluation。function 會在 call 之前 evaluate
+argument，再透過 parameter 使用得到的 value：
 
 ```c
 int square(int value) {
@@ -877,8 +877,8 @@ int square(int value) {
 }
 ```
 
-For inputs whose square is representable as `int`, `printf("%d\n", square(5));`
-prints:
+對於 square 能以 `int` 表示的 inputs，`printf("%d\n", square(5));`
+會印出：
 
 ```text
 25
@@ -888,10 +888,10 @@ prints:
 
 ---
 
-### A minimal Makefile
+### 最小的 Makefile
 
-> **Tooling reference:** students need to understand the compile and link
-> commands. Memorizing Makefile syntax is not a C-language objective.
+> **工具參考：**學生必須理解 compile 與 link
+> commands。記住 Makefile 語法並非 C-language 的學習目標。
 
 ```make
 CC = cc
@@ -907,86 +907,86 @@ rational.o: rational.c rational.h
 	$(CC) $(CFLAGS) -c rational.c
 ```
 
-The dependency edges explain what must be rebuilt after a header changes. Make
-is not the compiler; it decides which compiler/linker commands are out of date.
+dependency edges 說明 header 變更之後必須 rebuilt 哪些內容。Make
+不是 compiler；它會決定哪些 compiler/linker commands 已過時。
 
-The indented recipe lines must begin with a tab because that character is part
-of traditional Makefile syntax. The variables reduce duplication; `$(CC)` and
-`$(CFLAGS)` are expanded by Make before it runs the resulting shell command.
+縮排的 recipe lines 必須以 tab 開始，因為這個字元屬於
+傳統 Makefile 語法的一部分。variables 可以減少重複；`$(CC)` 與
+`$(CFLAGS)` 會由 Make 展開，再執行產生的 shell command。
 
-#### Try it now [Extension] — predict the rebuild set (4 minutes)
+#### 立即練習 [延伸] — 預測 rebuild 集合（4 分鐘）
 
-After one successful `make rational_demo`, predict which commands run after
-touching only `main.c`, only `rational.c`, and then `rational.h`. Explain each
-answer from the dependency lines rather than memorizing Make behavior.
+成功執行一次 `make rational_demo` 後，預測只 touching
+`main.c`、只 touching `rational.c`，以及接著 touching `rational.h` 時會執行哪些 commands。請從
+dependency lines 解釋每個答案，而不是背誦 Make 的行為。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Changed file | Recompiled objects | Relink? |
+| 變更的檔案 | 重新 compiled 的 objects | 是否 relink？ |
 |--------------|--------------------|---------|
-| `main.c` | `main.o` | yes |
-| `rational.c` | `rational.o` | yes |
-| `rational.h` | both `main.o` and `rational.o` | yes |
+| `main.c` | `main.o` | 是 |
+| `rational.c` | `rational.o` | 是 |
+| `rational.h` | `main.o` 與 `rational.o` 兩者 | 是 |
 
-If every target is already newer than its prerequisites, Make commonly reports
-that the target is up to date and runs no recipe. Exact status wording is
-implementation-dependent; the dependency decisions above are the required
-result.
+如果每個 target 都已比其 prerequisites 更新，Make 通常會回報
+target 已是最新，且不執行任何 recipe。確切的狀態文字
+依 implementation 而定；上面的 dependency 判斷才是要求掌握的
+結果。
 
-**Expected terminal evidence:** unless recipes are silenced, Make prints each
-compiler or linker command that it chooses to run. The table predicts that
-command set; the program itself is not executed by this Makefile.
+**預期 terminal 證據：**除非 recipes 設為不顯示，否則 Make 會印出
+它決定執行的每個 compiler 或 linker command。表格預測了這組
+commands；這個 Makefile 不會執行程式本身。
 
 </details>
 
 ---
 
-### Hour 2 failure lab
+### 第 2 小時故障 lab
 
-#### Try it now [Core live] — classify five failures (5 minutes)
+#### 立即練習 [課堂核心] — 分類五種故障（5 分鐘）
 
-Seed and classify these defects in a three-file program:
+在 three-file 程式中置入並分類這些缺陷：
 
-1. omit a header dependency from the Makefile;
-2. declare `double mean(...)` but define `int mean(...)`;
-3. define a non-`static` helper with the same name in two source files;
-4. place a function definition in a header included by both source files;
-5. change a function body without relinking.
+1. 在 Makefile 中省略 header dependency；
+2. 宣告 `double mean(...)`，但定義 `int mean(...)`；
+3. 在兩個 source files 中定義同名的非 `static` helper；
+4. 將 function definition 放在兩個 source files 都會 include 的 header 中；
+5. 變更 function body，卻未 relinking。
 
-For each, identify the first stage capable of detecting the defect.
+對每一項，找出最早能偵測該缺陷的 stage。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Seeded defect | First reliable evidence |
+| 置入的缺陷 | 第一項可靠證據 |
 |---------------|-------------------------|
-| Header dependency omitted from Makefile | a stale-build failure after the header changes; Make incorrectly skips an object whose source view is now outdated |
-| Header declares `double mean(...)`, source defines `int mean(...)` and includes that header | compile-time conflicting-types diagnostic |
-| Two source files export the same non-`static` helper | multiple-definition link error |
-| Ordinary function definition placed in a header included by two source files | each file compiles, then linking reports multiple definitions |
-| Function body changed but executable not relinked | no diagnostic from the stale executable; its behavior and timestamps reveal that the new object was not incorporated |
+| Makefile 中省略 Header dependency | header 變更後出現 stale-build failure；Make 錯誤地跳過 source view 已過時的 object |
+| Header 宣告 `double mean(...)`，source 定義 `int mean(...)` 並 include 該 header | compile-time conflicting-types diagnostic |
+| 兩個 source files export 相同的非 `static` helper | multiple-definition link error |
+| 一般 function definition 放在兩個 source files 都會 include 的 header 中 | 每個 file 都能 compile，接著 linking 回報 multiple definitions |
+| Function body 變更，但 executable 未 relinked | 過時的 executable 不會提供 diagnostic；其行為與 timestamps 顯示新的 object 未被納入 |
 
-The missing Make dependency is a build-graph defect rather than a C diagnostic.
-It may stay hidden until a header changes, which is why a clean build alone does
-not prove that dependency declarations are complete. Failed builds have no
-run-time output because the intended executable was not produced or refreshed.
+缺少 Make dependency 是 build-graph 缺陷，而非 C diagnostic。
+它可能一直隱藏到 header 變更才出現，因此單靠 clean build
+無法證明 dependency declarations 完整。失敗的 builds 沒有
+run-time output，因為預期的 executable 未被產生或更新。
 
 </details>
 
 ---
 
-## Hour 3 — Assertions, file boundaries, tests, and debugging
+## 第 3 小時 — Assertions、file boundaries、tests 與 debugging
 
-> **Hour 3 route:** [Assertions, tests, and debugger evidence](#6-assertions-tests-and-debugger-evidence)
-> → [File I/O is another contract boundary](#file-io-is-another-contract-boundary)
-> → [Debugging studio: invariant first](#debugging-studio-invariant-first)
-> → [Style as a correctness tool](#7-style-as-a-correctness-tool)
-> → [project pipeline map](#midterm-project-connection--map-before-modifying)
+> **第 3 小時路線：**[Assertions、tests 與 debugger 證據](#6-assertionstests-與-debugger-證據)
+> → [File I/O 是另一個 contract boundary](#file-io-是另一個-contract-boundary)
+> → [Debugging 工作坊：先看 invariant](#debugging-工作坊先看-invariant)
+> → [Style 作為 correctness 工具](#7-style-作為-correctness-工具)
+> → [專案 pipeline map](#期中專案連結--修改之前先建立-map)
 
-### 6. Assertions, tests, and debugger evidence
+### 6. Assertions、tests 與 debugger 證據
 
-Use assertions for internal conditions that indicate a programmer error:
+對代表 programmer error 的 internal conditions 使用 assertions：
 
 ```c
 #include <assert.h>
@@ -1002,32 +1002,32 @@ int array_sum(const int values[], size_t count) {
 }
 ```
 
-This teaching version requires the mathematical sum to be representable as an
-`int`. An interface for unrestricted inputs must use checked arithmetic or
-report overflow explicitly.
+這個教學版本要求數學上的 sum 必須能以
+`int` 表示。對 unrestricted inputs 的 interface 必須使用 checked arithmetic，或
+明確回報 overflow。
 
-`assert(condition)` is a macro from `<assert.h>`. When the condition is false in
-an assertion-enabled build, the implementation reports diagnostic context and
-terminates the program abnormally. The exact text is not portable. Defining
-`NDEBUG` before including `<assert.h>`, commonly through the compiler option
-`-DNDEBUG`, disables assertions. Therefore:
+`assert(condition)` 是來自 `<assert.h>` 的 macro。在啟用 assertion 的 build 中，
+當 condition 為 false，implementation 會回報 diagnostic context，
+並以異常方式終止程式。確切文字不具 portable 特性。在
+`NDEBUG` 在 include `<assert.h>` 之前被定義時，通常是透過 compiler option
+`-DNDEBUG`，就會停用 assertions。因此：
 
-- use assertions for violated internal assumptions that indicate a programming
-  defect;
-- validate malformed input, missing files, and other expected failures with
-  ordinary control flow; and
-- never put a required assignment, function call, or other side effect only
-  inside an assertion.
+- 對表示 programming 缺陷的 internal assumptions 違反，
+  使用 assertions；
+- 使用一般 control flow 驗證 malformed input、缺少檔案與其他預期的 failures；
+  以及
+- 絕對不要把必要的 assignment、function call 或其他 side effect
+  只放在 assertion 裡。
 
-#### Try it now [Core live] — separate a checked invariant from input handling (4 minutes)
+#### 立即練習 [課堂核心] — 區分受檢查的 invariant 與 input handling（4 分鐘）
 
-Call `array_sum` for `{4, -1, 3}` and for `NULL` with `count == 0`. Predict both
-results. Then classify `array_sum(NULL, 1)` without running it: what does an
-assertion-enabled build detect, and why would disabling assertions not make the
-call valid?
+呼叫 `array_sum`，分別使用 `{4, -1, 3}` 與 `NULL`（`count == 0`）。預測兩個
+結果。接著分類 `array_sum(NULL, 1)`，但不要執行：啟用
+assertion 的 build 會偵測什麼？為何停用 assertions 也無法讓這個
+call 變得有效？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 #include <stdio.h>
@@ -1039,34 +1039,34 @@ int main(void) {
 }
 ```
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 sum=6 empty=0
 ```
 
-For `array_sum(NULL, 1)`, the assertion condition is false and an enabled
-assertion should terminate the program before the loop dereferences `NULL`.
-With `NDEBUG`, that check disappears and the later access is undefined
-behavior. The precondition remains part of the interface in every build, so do
-not run the invalid call as an ordinary test.
+對 `array_sum(NULL, 1)` 而言，assertion condition 為 false；啟用的
+assertion 應在 loop dereferences `NULL` 之前終止程式。
+使用 `NDEBUG` 時，這項檢查會消失，後續的 access 就是 undefined
+behavior。precondition 在每個 build 中都仍是 interface 的一部分，因此
+不要把無效的 call 當成一般 test 來執行。
 
 </details>
 
-A practical debugging loop is:
+實用的 debugging loop 如下：
 
-1. Reproduce the smallest failing input.
-2. State the expected and observed behavior.
-3. Compile with warnings and sanitizers.
-4. Stop at a relevant line in the debugger.
-5. Inspect control flow and data; do not guess blindly.
-6. Add a regression test before or with the fix.
+1. 重現最小的 failing input。
+2. 陳述預期行為與觀察到的行為。
+3. 使用 warnings 與 sanitizers 進行 Compile。
+4. 在 debugger 中停在相關的程式行。
+5. 檢查 control flow 與 data；不要盲目猜測。
+6. 在修復之前或同時加入 regression test。
 
 <details>
-<summary>Side note — build an instrumented executable</summary>
+<summary>補充說明 — build 一個 instrumented executable</summary>
 
-On a compiler and platform that provide AddressSanitizer and UndefinedBehavior-
-Sanitizer, a diagnostic build commonly uses:
+在提供 AddressSanitizer 與 UndefinedBehavior-
+Sanitizer 的 compiler 與 platform 上，diagnostic build 通常使用：
 
 ```sh
 cc -std=c17 -Wall -Wextra -Wpedantic -g -O0 \
@@ -1074,30 +1074,30 @@ cc -std=c17 -Wall -Wextra -Wpedantic -g -O0 \
   main.c rational.c -o rational_demo_sanitized
 ```
 
-`-O0` keeps the source/debugger relationship straightforward,
-`-fsanitize=address,undefined` adds run-time checks for supported memory and
-undefined-behavior categories, and `-fno-omit-frame-pointer` often improves
-diagnostic stack traces. These options are compiler facilities rather than C17
-language features, and availability varies by toolchain.
+`-O0` 讓 source/debugger 的對應關係保持直接，
+`-fsanitize=address,undefined` 加入對支援的 memory 與
+undefined-behavior 類別的 run-time checks，而 `-fno-omit-frame-pointer` 通常可改善
+diagnostic stack traces。這些 options 是 compiler 提供的功能，而非 C17
+language features；可用性會因 toolchain 而異。
 
-A successful compilation normally prints nothing. Running a valid test may
-also produce no sanitizer message; the absence of a report covers only the
-executed paths and is not a proof that the whole program is correct.
+成功的 compilation 通常不會印出任何內容。執行有效的 test
+也可能沒有 sanitizer 訊息；沒有 report 只涵蓋
+已執行的 paths，無法證明整個程式都正確。
 
 </details>
 
-Typical debugger commands are `break`, `run`, `next`, `step`, `print`, and
-`backtrace`. Learn the concepts; the exact command spelling varies by debugger.
+常見的 debugger commands 包括 `break`、`run`、`next`、`step`、`print` 與
+`backtrace`。請學會概念；確切的 command 寫法會因 debugger 而異。
 
 ---
 
-### File I/O is another contract boundary
+### File I/O 是另一個 contract boundary
 
-> **Supporting interface technique:** stream parameters make code testable, but
-> the central lesson is still to state input, output, and failure contracts.
+> **輔助 interface 技巧：**stream parameters 讓程式碼可以測試，但
+> 核心重點仍是陳述 input、output 與 failure contracts。
 
-The header example earlier in this note introduced `FILE*` as a borrowed stream
-handle. A module can accept such a handle instead of opening a hard-coded path:
+本講義前面的 header 範例介紹了 `FILE*` 作為 borrowed stream
+handle。module 可以接受這種 handle，而不必開啟 hard-coded path：
 
 ```c
 #include <stdbool.h>
@@ -1127,79 +1127,79 @@ bool students_read(FILE* input, struct Student students[], size_t capacity,
 }
 ```
 
-Receiving `FILE*` makes the parser testable with redirected files or temporary
-streams. It also separates “where bytes come from” from “how records are
-parsed.” The record grammar is three whitespace-separated fields: an `int` ID,
-a word of at most 31 stored characters, and a `double` grade. As in Week 1, the
-contract assumes numeric tokens are representable by their destination types.
+接收 `FILE*` 讓 parser 可以透過 redirected files 或 temporary
+streams 測試。它也將「bytes 從哪裡來」與「records 如何
+parsed」分開。record grammar 是三個以 whitespace 分隔的 fields：`int` ID、
+最多儲存 31 個 characters 的 word，以及 `double` grade。如第 1 週所述，
+contract 假設 numeric tokens 能以 destination types 表示。
 
-The function publishes each complete record immediately. If a later record is
-malformed, it returns `false` with `*count` equal to the number of earlier valid
-records already stored. Once the array reaches capacity, the suppressed `%*s`
-conversion checks for any extra token: a token makes the call return zero and
-the function rejects the input; clean end-of-file returns `EOF` with the stream's
-end indicator set. Read errors are rejected rather than confused with ordinary
-end-of-file.
+function 會立即提供每個完整的 record。如果後續 record
+malformed，它會回傳 `false`，而 `*count` 等於先前已儲存的有效
+records 數量。array 達到 capacity 之後，suppressed `%*s`
+conversion 會檢查是否還有額外的 token：有 token 時，call 會回傳零，
+function 就會拒絕 input；正常的 end-of-file 會回傳 `EOF`，且 stream 的
+end indicator 已設定。Read errors 會被拒絕，不會與一般的
+end-of-file 混淆。
 
-#### Try it now [Core live] — trace the stream contract (5 minutes)
+#### 立即練習 [課堂核心] — 追蹤 stream contract（5 分鐘）
 
-With capacity two, predict the return status and final count for each input.
-Identify which records, if any, have been published.
+在 capacity 為 2 時，預測每個 input 的 return status 與最後的 count。
+指出已提供了哪些 records（如果有的話）。
 
 1. `1001 Ada 92.5 1002 Lin 88`
-2. empty input
+2. 空的 input
 3. `1001 Ada x`
 4. `1001 Ada 92.5 1002 Lin 88 1003 Chen 75`
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Input | Status | `count` | Published records |
+| Input | 狀態 | `count` | 已提供的 records |
 |-------|--------|---------|-------------------|
-| two complete records | `true` | `2` | Ada and Lin |
-| empty input | `true` | `0` | none |
-| invalid grade in first record | `false` | `0` | none |
-| three records with capacity two | `false` | `2` | Ada and Lin; the extra token proves overflow of the record capacity |
+| 兩個完整的 records | `true` | `2` | Ada 與 Lin |
+| 空的 input | `true` | `0` | 無 |
+| 第一個 record 的 grade 無效 | `false` | `0` | 無 |
+| 三個 records，但 capacity 為 2 | `false` | `2` | Ada 與 Lin；額外的 token 證明已超過 record capacity |
 
-This is a control-flow trace, so the function itself writes no standard output.
-The caller decides whether and how to report a `false` result.
+這是 control-flow trace，因此 function 本身不會寫入任何 standard output。
+caller 決定是否回報 `false` 結果，以及如何回報。
 
 </details>
 
 ---
 
-### Debugging studio: invariant first
+### Debugging 工作坊：先看 invariant
 
-Seed one concrete defect: temporarily remove the `denominator < 0` normalization
-block from `rational_make`. The request `2/-4` can then publish `1/-2`, violating
-the positive-denominator invariant. Work in this order:
+置入一個具體缺陷：暫時移除 `denominator < 0` normalization
+block（位於 `rational_make`）。request `2/-4` 就可能提供 `1/-2`，違反
+positive-denominator invariant。請依照這個順序操作：
 
-1. add `assert(value->denominator > 0)` at public observation points;
-2. construct the smallest input that triggers the assertion;
-3. break in `rational_make` and inspect both numeric parameters before and after
-   the missing normalization point;
-4. determine which operation bypassed normalization;
-5. repair the public mutation path;
-6. add a regression test that checks both value and invariant;
-7. run the complete test set with sanitizers.
+1. 在 public observation points 加入 `assert(value->denominator > 0)`；
+2. 建立能觸發 assertion 的最小 input；
+3. 在 `rational_make` 中設定 break，並檢查兩個 numeric parameters 在
+   缺少 normalization 的位置前後的值；
+4. 找出哪個 operation 繞過了 normalization；
+5. 修復 public mutation path；
+6. 新增同時檢查 value 與 invariant 的 regression test；
+7. 使用 sanitizers 執行完整的 test set。
 
-The assertion is not the repair. It converts a distant wrong output into a
-failure at the boundary where the invariant first becomes observable.
+assertion 本身不是修復。它將較遠處的錯誤 output，轉為
+invariant 首次可被觀察到的 boundary 上的 failure。
 
-#### Try it now [Core live] — record evidence before repairing (5 minutes)
+#### 立即練習 [課堂核心] — 修復之前先記錄證據（5 分鐘）
 
-Perform the seeded experiment. Record the requested value, the incorrectly
-published members, the assertion boundary, and the smallest repair. Add a test
-for both `2/-4` and `-2/-4` so the repaired sign logic is exercised in both
-directions.
+進行置入缺陷的實驗。記錄 requested value、錯誤地
+提供的 members、assertion boundary 與最小修復。新增 test，
+同時測試 `2/-4` 與 `-2/-4`，讓修復後的 sign logic 在兩個
+方向都被執行。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Without sign normalization, `gcd_positive(2, -4)` returns 2 and construction
-publishes `1/-2`. The assertion in `rational_print` detects the invalid
-denominator before presenting it as a valid rational value. The smallest repair
-restores this block before computing the divisor:
+沒有 sign normalization 時，`gcd_positive(2, -4)` 回傳 2，construction
+則提供 `1/-2`。`rational_print` 中的 assertion 會在將其呈現為有效的
+rational value 之前，偵測出無效的 denominator。最小修復是
+在計算 divisor 之前還原這個 block：
 
 ```c
 if (denominator < 0) {
@@ -1208,8 +1208,8 @@ if (denominator < 0) {
 }
 ```
 
-After repair, `2/-4` becomes `-1/2`, while `-2/-4` becomes `1/2`. A regression
-test should check both members, not only printed text:
+修復之後，`2/-4` 變為 `-1/2`，而 `-2/-4` 變為 `1/2`。regression
+test 應檢查兩個 members，而非只檢查印出的文字：
 
 ```c
 Rational value;
@@ -1221,38 +1221,38 @@ assert(made);
 assert(value.numerator == 1 && value.denominator == 2);
 ```
 
-Assertions produce no standard output when every condition is true. The test
-driver may print a separate success message after all checks pass.
+當每個 condition 都為 true 時，Assertions 不會產生 standard output。test
+driver 可以在所有 checks 通過後，另外印出成功訊息。
 
 </details>
 
 ---
 
-### 7. Style as a correctness tool
+### 7. Style 作為 correctness 工具
 
-- Give each function one clear responsibility.
-- Use names that expose units and roles (`capacity`, `student_count`).
-- Replace unexplained magic values with named constants.
-- Keep declarations near first use.
-- Use `const` for data a function must not modify.
-- Document why a surprising choice is correct, not what obvious syntax does.
+- 讓每個 function 都有一項明確責任。
+- 使用能表達 units 與 roles 的名稱（`capacity`、`student_count`）。
+- 用 named constants 取代沒有解釋的 magic values。
+- 將 declarations 放在接近第一次使用的位置。
+- 對 function 不得修改的 data，使用 `const`。
+- 記錄令人意外的選擇為何正確，而不是解釋顯而易見的語法在做什麼。
 
-#### Try it now [Extension] — make a contract readable before changing behavior (3 minutes)
+#### 立即練習 [延伸] — 變更行為之前，先讓 contract 易讀（3 分鐘）
 
-Review this declaration and identify what a caller cannot learn from its names:
+檢視這個 declaration，並指出 caller 無法從名稱得知哪些資訊：
 
 ```c
 int process(int* a, int n, int m);
 ```
 
-Rewrite only the declaration and its short contract for a function that counts
-scores at least a threshold. Do not change the algorithm because none has been
-specified yet.
+針對計算 scores 至少達到 threshold 數量的 function，
+只改寫 declaration 與簡短的 contract。不要改變 algorithm，因為目前尚未
+指定任何 algorithm。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-One clearer interface is:
+更清楚的 interface 如下：
 
 ```c
 #include <stddef.h>
@@ -1261,28 +1261,28 @@ size_t count_scores_at_least(const int scores[], size_t score_count,
                              int threshold);
 ```
 
-Its contract requires a readable range of `score_count` integers, does not
-modify that range, and returns a value from zero through `score_count`. The
-names expose the element role, logical length, and comparison boundary.
-Declarations alone have no run-time output.
+它的 contract 要求可讀取的 `score_count` 個 integers 範圍，
+不修改該範圍，並回傳介於零與 `score_count` 之間的 value。
+這些名稱表達了 element 的用途、logical length 與 comparison boundary。
+Declarations 本身沒有 run-time output。
 
 </details>
 
 ---
 
-## Midterm project connection — Map before modifying
+## 期中專案連結 — 修改之前先建立 map
 
-The expression-compiler scaffold and its companion tools are released this
-week. Treat them as an unfamiliar system, not as a collection of blanks to send
-to an LLM.
-Before changing code, identify:
+expression-compiler scaffold 與其補充工具會在本
+週發布。請把它們視為不熟悉的系統，而不是一組可交給
+LLM 填寫的空格。
+修改程式碼之前，先找出：
 
-- the entry point and input contract;
-- token representation and the lexer boundary;
-- the parser's input and AST output;
-- semantic and instruction-generation stages;
-- allocation, cleanup, and error-reporting responsibilities;
-- each TODO's precondition and postcondition.
+- entry point 與 input contract；
+- token representation 與 lexer boundary；
+- parser 的 input 與 AST output；
+- semantic 與 instruction-generation stages；
+- allocation、cleanup 與 error-reporting 的責任；
+- 每個 TODO 的 precondition 與 postcondition。
 
 ```mermaid
 flowchart LR
@@ -1296,72 +1296,72 @@ flowchart LR
     ast --> cleanup["cleanup on success or failure"]
 ```
 
-Trace one public expression through the existing stages and record where the
-scaffold is complete, incomplete, or deliberately simplified. An AI tool may
-help explain a function, but students must verify every claim against the
-actual declarations and one executed trace. Thursday's deliverable is a build
-record and pipeline map, not project implementation.
+沿著現有 stages 追蹤一個 public expression，並記錄
+scaffold 哪些部分完整、未完成或刻意簡化。AI 工具可以
+協助解釋 function，但學生必須根據實際的
+declarations 與一次已執行的 trace 驗證每項說法。星期四的 deliverable 是 build
+record 與 pipeline map，而不是 project implementation。
 
-### Try it now [Core live] — trace one expression without implementing TODOs (5 minutes)
+### 立即練習 [課堂核心] — 追蹤一個 expression，不實作 TODOs（5 分鐘）
 
-Use the public expression `12 + 3 * 4`. For every stage available in the
-scaffold, record its input, output, failure signal, owner of any allocated
-object, and one piece of executed evidence. Mark unavailable stages as TODOs
-instead of asking an AI tool to invent their behavior.
+使用 public expression `12 + 3 * 4`。對 scaffold 中每個可用的
+stage，記錄其 input、output、failure signal、任何 allocated
+object 的 owner，以及一項已執行的證據。將不可用的 stages 標為 TODOs，
+而不是請 AI 工具虛構其行為。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-A valid map has the following shape; exact type and function names must come
-from the released scaffold:
+有效的 map 應具有以下形式；確切的 type 與 function 名稱必須來自
+已發布的 scaffold：
 
-| Stage | Expected conceptual result | Evidence to record |
+| Stage | 預期的概念結果 | 應記錄的證據 |
 |-------|----------------------------|--------------------|
-| Input | characters `12 + 3 * 4` | exact testcase and entry point |
-| Lexer | integer 12, plus, integer 3, star, integer 4, end | token trace or debugger observations |
-| Parser | addition whose right child is multiplication | tree dump or parser call trace showing precedence |
-| Semantic checks | numeric expression accepted, or a documented TODO | return status and error channel |
-| Generator | instructions evaluate multiplication before addition | generated text or a documented TODO |
-| Cleanup | every successfully allocated node released on every exit path | cleanup calls, sanitizer result, or a documented gap |
+| Input | characters `12 + 3 * 4` | 確切的 testcase 與 entry point |
+| Lexer | integer 12、plus、integer 3、star、integer 4、end | token trace 或 debugger 觀察結果 |
+| Parser | right child 是 multiplication 的 addition | 顯示 precedence 的 tree dump 或 parser call trace |
+| Semantic checks | numeric expression 被接受，或有記錄的 TODO | return status 與 error channel |
+| Generator | instructions 在 addition 之前 evaluate multiplication | 產生的文字或有記錄的 TODO |
+| Cleanup | 每個成功 allocated 的 node 都在每條 exit path 上 released | cleanup calls、sanitizer 結果或有記錄的缺漏 |
 
-This panel specifies the reasoning process, not the scaffold's hidden
-implementation. A stage is not “working” merely because an AI explanation says
-so; the claim needs a declaration, a call trace, output, or test result.
+這個區塊說明推理流程，而不是 scaffold 隱藏的
+implementation。某個 stage 不會僅因 AI 解釋說它能運作，
+就代表它真的能運作；這項說法需要 declaration、call trace、output 或 test 結果支持。
 
 </details>
 
 ---
 
-## Check yourself
+## 自我檢核
 
-1. Which declarations belong in a public header, and which should remain private?
-2. Why does defining an ordinary function in a header often cause link errors?
-3. What invariant would you require for a date structure?
-4. Classify a missing prototype versus a missing function body.
-5. Design three tests for `rational_make`, including one invalid input.
-6. Why must a tagged-union reader inspect the tag before the payload?
-7. Why must a required function call not appear only inside `assert(...)`?
-8. Which object files must be rebuilt after `rational.h` changes, and why?
-9. What partial result does `students_read` expose after a malformed later
-   record?
-
----
-
-## Summary
-
-- Structures give a fixed layout to related fields.
-- Enums make states and tagged alternatives explicit.
-- Invariants constrain raw field combinations to meaningful program states.
-- Headers declare contracts; source files define behavior.
-- Compilation checks each translation unit; linking connects them.
-- Assertions diagnose programmer errors but do not replace input validation.
-- Focused tests, sanitizers, and debuggers turn failures into evidence.
+1. 哪些 declarations 應放在 public header 中，哪些應維持 private？
+2. 為何在 header 中定義一般 function，常會導致 link errors？
+3. 你會要求 date structure 具備什麼 invariant？
+4. 分類缺少 prototype 與缺少 function body 這兩種情況。
+5. 為 `rational_make` 設計三個 tests，包含一個 invalid input。
+6. 為何 tagged-union reader 必須先檢查 tag，再讀取 payload？
+7. 為何必要的 function call 不能只出現在 `assert(...)` 中？
+8. `rational.h` 變更之後，哪些 object files 必須 rebuilt？為什麼？
+9. 當後續 record malformed 時，`students_read` 會提供什麼 partial
+   result？
 
 ---
 
-## References and source materials
+## 重點整理
 
-- [Structures, enumerations, and related C topics](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Supplementary%20Material%202/README.md>)
-- [Compiling multiple source files](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/如何compile多個檔案/如何%20compile%20多個檔案.md>)
+- Structures 為相關 fields 提供固定的 layout。
+- Enums 明確表達 states 與 tagged alternatives。
+- Invariants 將原始 field 組合限縮為有意義的 program states。
+- Headers 宣告 contracts；source files 定義行為。
+- Compilation 檢查每個 translation unit；linking 將它們連接起來。
+- Assertions 診斷 programmer errors，但無法取代 input validation。
+- 針對性的 tests、sanitizers 與 debuggers 能將故障轉為證據。
+
+---
+
+## 參考資料與來源教材
+
+- [Structures、enumerations 與相關 C 主題](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Supplementary%20Material%202/README.md>)
+- [Compiling 多個 source files](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/如何compile多個檔案/如何%20compile%20多個檔案.md>)
 - [Debugging](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Programming%20related%20Topic/Debug.md>)
 - [Programming style](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Programming%20related%20Topic/程式撰寫風格.md>)

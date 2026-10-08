@@ -1,89 +1,89 @@
-# Week 4 Lecture Notes — Pointers, Lifetime, and Dynamic Memory
+# 第 4 週課堂講義 — Pointers、Lifetime 與 Dynamic Memory
 
-> September 29, 2026 · Source lineage: previous pointer, dynamic allocation,
-> double-pointer, and linked-data notes plus the instructor-provided
-> *From C to Assembly* handout
+> 2026 年 9 月 29 日 · 來源脈絡：先前的 pointer、dynamic allocation、
+> double-pointer 與 linked-data 筆記，以及教師提供的
+> *From C to Assembly* 講義
 
-> Python bridge: [Python Contrast Companion for Week 4](week04_python_companion.md)
-
----
-
-## Student route
-
-- **Core:** draw what a pointer designates, distinguish lifetime from scope,
-  allocate/resize/free one dynamic array, and state who owns it.
-- **Practice:** complete the [Week 4 exercise](lecture_exercises/week04_ex.md)
-  before comparing with [the complete example](examples.c).
-- **Supporting ideas:** structure-initialization reminders,
-  declaration-precedence puzzles, function pointers, and `qsort` extend the
-  model; they should not replace the central address, bounds, lifetime, and
-  ownership reasoning on a first reading.
-- **Python bridge:** use the companion for conceptual comparison; Python object
-  references are not C pointers.
+> Python 銜接：[第 4 週 Python 對照補充教材](week04_python_companion.md)
 
 ---
 
-## Learning objectives
+## 學習路線
 
-By the end of this lecture, you should be able to:
-
-1. Read declarations involving objects, addresses, and pointers.
-2. Distinguish automatic storage duration, allocated storage duration, scope,
-   and object lifetime.
-3. Allocate, resize, and free dynamic arrays safely.
-4. Identify leaks, dangling pointers, null dereferences, and invalid access.
-5. Express ownership and mutation through a function contract.
+- **核心：** 畫出 pointer 指向的對象，區分 lifetime 與 scope，
+  對一個 dynamic array 執行 allocate/resize/free，並說明誰擁有它。
+- **練習：** 完成[第 4 週練習](lecture_exercises/week04_ex.md)
+  後，再與[完整範例](examples.c)比較。
+- **補充概念：** structure-initialization 提醒、
+  declaration-precedence 題目、function pointers 與 `qsort` 可擴充此
+  模型；初次閱讀時，仍應以 address、bounds、lifetime 與
+  ownership 的推理為核心。
+- **Python 銜接：** 使用對照教材比較概念；Python object
+  references 並不是 C pointers。
 
 ---
 
-## Three-hour plan
+## 學習目標
 
-| Hour | Main question | In-class production |
+完成本次課程後，你應該能夠：
+
+1. 讀懂涉及 objects、addresses 與 pointers 的 declarations。
+2. 區分 automatic storage duration、allocated storage duration、scope，
+   以及 object lifetime。
+3. 安全地對 dynamic arrays 執行 allocate、resize 與 free。
+4. 辨識 leaks、dangling pointers、null dereferences 與 invalid access。
+5. 透過 function contract 表達 ownership 與 mutation。
+
+---
+
+## 三小時課程規劃
+
+| 小時 | 主要問題 | 課堂產出 |
 |------|---------------|---------------------|
-| 1 | What exactly does a pointer designate? | Draw automatic-duration objects and trace pointer/array expressions |
-| 2 | How is dynamic lifetime created and changed? | Implement a failure-aware dynamic integer buffer |
-| 3 | How do ownership APIs remain safe, and how are memory errors diagnosed? | Audit ownership and repair sanitizer findings |
+| 1 | pointer 究竟指向什麼？ | 畫出 automatic-duration objects，並追蹤 pointer/array expressions |
+| 2 | 如何建立與改變 dynamic lifetime？ | 實作能處理失敗的 dynamic integer buffer |
+| 3 | ownership APIs 如何維持安全，又如何診斷 memory errors？ | 檢查 ownership，並修正 sanitizer 發現的問題 |
 
-Each hour interleaves about 35–45 minutes of explanation and live coding with
-roughly 15–20 minutes of core practice. The remaining time supports questions,
-transitions, and a short break. Exercises labelled **Extension** can move to the
-lab or independent study when the class needs more time on the core pointer and
-ownership model.
+每小時交錯安排約 35–45 分鐘的講解與現場程式示範，以及
+約 15–20 分鐘的核心練習。其餘時間用於提問、
+單元轉換與短暫休息。標示為**延伸**的練習可移至
+lab 或自學；若課堂需要更多時間掌握核心 pointer 與
+ownership 模型，就採用此安排。
 
-### Inline practice routine
+### 隨堂練習流程
 
-Each **Try it now** activity follows the same short cycle used in Weeks 1–3:
+每個**立即練習**活動都沿用第 1–3 週的簡短流程：
 
-1. draw the relevant objects, addresses, valid ranges, and ownership arrows;
-2. predict the value, state change, output, or diagnostic;
-3. write or edit the smallest complete C17 example;
-4. compile with `-std=c17 -Wall -Wextra -Wpedantic` and run only valid cases;
-5. explain which bounds, lifetime, or ownership rule justifies the result.
+1. 畫出相關 objects、addresses、有效範圍與 ownership 箭頭；
+2. 預測數值、狀態變化、輸出或 diagnostic；
+3. 撰寫或修改最小的完整 C17 範例；
+4. 使用 `-std=c17 -Wall -Wextra -Wpedantic` 編譯，並只執行有效情況；
+5. 說明哪一條 bounds、lifetime 或 ownership 規則能解釋結果。
 
-Only the question is initially visible. Expand **Reveal solution** after making
-and checking an attempt. Each solution gives expected output, a memory trace, a
-diagnostic category, or an explanation of why intentionally invalid code must
-not be executed.
+一開始只會顯示題目。嘗試作答並檢查後，再點選**展開解答**。
+每份解答提供預期輸出、memory trace、
+diagnostic 類別，或說明為什麼刻意寫成無效的程式碼
+不應執行。
 
-- **Core live:** part of the planned in-class route.
-- **Extension:** additional practice for the lab, a break, or later study.
+- **課堂核心：** 預定課堂路線的一部分。
+- **延伸：** 可在 lab、休息時間或課後完成的額外練習。
 
-The core-live exercises total about 15 minutes in Hour 1, 23 minutes in Hour 2,
-and 15 minutes in Hour 3. Supporting exercises provide additional material when
-the class moves faster than planned.
+課堂核心練習在第 1 小時共約 15 分鐘，第 2 小時約 23 分鐘，
+第 3 小時約 15 分鐘。當課程進度比預期快時，補充練習可提供
+額外教材。
 
 ---
 
-## Hour 1 — Addresses, indirection, arrays, and `const`
+## 第 1 小時 — Addresses、indirection、arrays 與 `const`
 
-> **Hour 1 route:** [A pointer stores an address](#1-a-pointer-stores-an-address)
-> → [Pass an address to modify a caller's object](#2-pass-an-address-to-modify-a-callers-object)
-> → [Use `const` to prevent accidental writes](#use-const-to-prevent-accidental-writes)
-> → [Arrays and pointers are related, not identical](#3-arrays-and-pointers-are-related-not-identical)
-> → [Pointer/array trace](#pointerarray-trace). Then use
-> [Hour 1 supporting extensions](#hour-1-supporting-extensions) if time permits.
+> **第 1 小時路線：** [pointer 儲存 address](#1-pointer-儲存-address)
+> → [傳入 address 以修改 caller 的 object](#2-傳入-address-以修改-caller-的-object)
+> → [使用 `const` 避免意外寫入](#使用-const-避免意外寫入)
+> → [arrays 與 pointers 有關聯，但並不相同](#3-arrays-與-pointers-有關聯但並不相同)
+> → [Pointer/array 追蹤](#pointerarray-追蹤)。時間允許時，再進行
+> [第 1 小時補充延伸](#第-1-小時補充延伸)。
 
-### 1. A pointer stores an address
+### 1. pointer 儲存 address
 
 ```c
 #include <stdio.h>
@@ -99,28 +99,28 @@ int main(void) {
 }
 ```
 
-- `&value` produces the address of `value`.
-- `pointer` stores that address.
-- `*pointer` designates the object at that address.
-- The pointer type describes the pointed-to object and controls pointer arithmetic.
+- `&value` 產生 `value` 的 address。
+- `pointer` 儲存該 address。
+- `*pointer` 指向該 address 的 object。
+- pointer type 描述所指向的 object，並控制 pointer arithmetic。
 
-The `%p` conversion prints a pointer value in an implementation-selected form.
-It expects an argument of type `void*`, so `(void*)&value` explicitly converts
-the address before passing it to `printf`. A `void*` is C's generic
-object-pointer type: it can hold an object address, but it does not say what
-pointed-to type may be dereferenced. Later examples use typed pointers such as
-`int*` whenever they access an object.
+`%p` conversion 會以 implementation 選定的形式印出 pointer 值。
+它要求 argument 的 type 為 `void*`，因此 `(void*)&value` 會先明確轉換
+address，再將它傳入 `printf`。`void*` 是 C 的通用
+object-pointer type：它可以保存 object address，但不會說明
+可 dereference 的 pointed-to type。後續範例在存取 object 時，會使用
+`int*` 等 typed pointers。
 
 ```mermaid
 flowchart LR
     pointer["pointer<br/>stores address of value"] --> value["value<br/>7"]
 ```
 
-The arrow means “stores the address of,” not “contains a copy of.” Reading
-`*pointer` follows the arrow; writing `*pointer = 9` changes the `value` box.
+箭頭表示「儲存對方的 address」，而不是「包含對方的副本」。讀取
+`*pointer` 時會沿著箭頭前進；寫入 `*pointer = 9` 會改變 `value` 方框。
 
-The first and third lines are deterministic; the address text is selected by
-the implementation and may change between executions:
+第一行與第三行的結果是 deterministic；address 文字由
+implementation 選定，而且可能在不同次執行時改變：
 
 ```text
 value=7
@@ -128,70 +128,70 @@ address=<implementation-selected address>
 through pointer=7
 ```
 
-Read `int *pointer` as “pointer is a pointer to int.” In a multi-declaration, the
-star belongs to each declarator:
+將 `int *pointer` 讀成「pointer 是指向 int 的 pointer」。在 multi-declaration 中，
+星號各自屬於對應的 declarator：
 
 ```c
 int* first;
 int* second;
 ```
 
-This is clearer than `int *first, second`, where `second` is not a pointer.
+這比 `int *first, second` 更清楚，因為其中的 `second` 並不是 pointer。
 
-You will see both `int *pointer` and `int* pointer`. They declare the same type;
-spacing does not change the program. The course formatter writes
-`int* pointer`, emphasizing “pointer to int” as the type. That spacing does not
-change C's declaration grammar:
+你會看到 `int *pointer` 與 `int* pointer` 兩種寫法。它們宣告相同的 type；
+空白不會改變程式。本課程的 formatter 使用
+`int* pointer`，強調 type 是「指向 int 的 pointer」。這種空白安排不會
+改變 C 的 declaration grammar：
 
 ```c
 int *first, count; /* first is int*, but count is int */
 ```
 
-Because `count` is still an `int`, not a pointer, do not depend on spacing to
-communicate a multi-declaration. One variable per declaration is the clearest
-course style:
+由於 `count` 仍然是 `int`，並不是 pointer，因此不要依靠空白來
+表達 multi-declaration。每個 declaration 只放一個 variable，是本課程最清楚的
+風格：
 
 ```c
 int* first;
 int count;
 ```
 
-#### Try it now [Core live] — change an object through its address (3 minutes)
+#### 立即練習 [課堂核心] — 透過 address 改變 object（3 分鐘）
 
-Starting from the complete program above, execute `*pointer = 9`, then print
-both `value` and `*pointer`. Draw the two named objects before predicting the
-output. How many `int` objects exist?
+以上方完整程式為起點，執行 `*pointer = 9`，接著印出
+`value` 與 `*pointer`。先畫出兩個有名稱的 objects，再預測
+輸出。共有幾個 `int` objects？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Add these statements before `return 0`:
+在 `return 0` 前加入以下 statements：
 
 ```c
 *pointer = 9;
 printf("value=%d through-pointer=%d\n", value, *pointer);
 ```
 
-**Expected added output:**
+**預期新增輸出：**
 
 ```text
 value=9 through-pointer=9
 ```
 
-There is one `int` object, named `value`, and one pointer object, named
-`pointer`. Dereferencing the pointer designates the existing integer; it does
-not create a second integer.
+這裡有一個 `int` object，名為 `value`，以及一個名為
+`pointer` 的 pointer object。Dereferencing 此 pointer 會指向既有的 integer；它
+不會建立第二個 integer。
 
 </details>
 
 ---
 
-### 2. Pass an address to modify a caller's object
+### 2. 傳入 address 以修改 caller 的 object
 
-Week 2 used this pattern as an operational bridge. We can now state the complete
-pointer contract: both parameters must designate live, writable `int` objects
-for the duration of the call. They may designate the same object; the body must
-still remain valid in that case.
+第 2 週將此模式作為操作上的銜接。現在我們可以說明完整的
+pointer contract：兩個 parameters 都必須指向仍存活且可寫入的 `int` objects，
+並在整個呼叫期間保持如此。它們可以指向同一個 object；在這種情況下，function body
+仍然必須有效。
 
 ```c
 #include <stdio.h>
@@ -211,48 +211,48 @@ int main(void) {
 }
 ```
 
-C still passes arguments by value: `left` receives a copy of `&a`. Both the
-original address and its copy designate the same integer, so dereferencing the
-copy modifies `a`.
+C 仍然以 pass by value 傳遞 arguments：`left` 接收 `&a` 的副本。
+原始 address 與其副本都指向同一個 integer，因此 dereferencing
+副本會修改 `a`。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 a=20 b=10
 ```
 
-#### Try it now [Core live] — trace an aliased call (3 minutes)
+#### 立即練習 [課堂核心] — 追蹤 aliased call（3 分鐘）
 
-After the first call, add `swap(&a, &a)`. Predict whether the function violates
-its contract and what the next printed value of `a` will be.
+在第一次呼叫後加入 `swap(&a, &a)`。預測此 function 是否違反
+contract，以及下一次印出的 `a` 值會是多少。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Both parameters designate the same live, writable object. The assignments read
-and write that one object but leave its value unchanged:
+兩個 parameters 都指向同一個仍存活且可寫入的 object。這些 assignments 會讀取
+並寫入該 object，但不會改變其值：
 
 ```c
 swap(&a, &a);
 printf("a=%d\n", a);
 ```
 
-**Expected added output:**
+**預期新增輸出：**
 
 ```text
 a=20
 ```
 
-This implementation permits aliasing. A different function may require two
-non-overlapping ranges; that restriction would have to appear in its contract.
+此 implementation 允許 aliasing。其他 function 可能要求兩個
+互不重疊的範圍；這項限制必須寫在其 contract 中。
 
 </details>
 
 ---
 
-### Use `const` to prevent accidental writes
+### 使用 `const` 避免意外寫入
 
-A pointer parameter can promise that the function only reads the array:
+pointer parameter 可以承諾 function 只讀取 array：
 
 ```c
 #include <stdbool.h>
@@ -275,63 +275,63 @@ int main(void) {
 }
 ```
 
-Without `const`, a typo such as `values[i] = 0` is a valid assignment and can
-silently modify the caller's array. With `const int*`, the compiler rejects
-that assignment. `const` is therefore both a contract for the caller and a
-safety check for the function author.
+若沒有 `const`，像 `values[i] = 0` 這樣的筆誤會是有效的 assignment，並可能
+悄悄修改 caller 的 array。使用 `const int*` 時，compiler 會拒絕
+該 assignment。因此，`const` 既是給 caller 的 contract，也是
+對 function 作者的安全檢查。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 contains-zero=1
 ```
 
-#### Try it now [Core live] — let `const` catch an assignment typo (2 minutes)
+#### 立即練習 [課堂核心] — 讓 `const` 找出 assignment 筆誤（2 分鐘）
 
-Temporarily change `==` in the `if` condition to `=`. Compile but do not run.
-Classify the result, then restore the comparison.
+暫時將 `==`（位於 `if` condition 中）改成 `=`。只編譯，不要執行。
+判斷結果的類別，接著還原 comparison。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The attempted statement is equivalent to assigning through a pointer-to-const:
+嘗試使用的 statement 等同於透過 pointer-to-const 進行 assignment：
 
 ```c
 values[i] = 0;
 ```
 
-Compilation must issue a diagnostic because this access path does not permit
-modification. No executable output should be requested from the rejected
-program. Exact wording varies, but it should identify assignment to a read-only
-location or object.
+編譯時必須產生 diagnostic，因為此 access path 不允許
+修改。對於遭拒絕的程式，不應要求任何執行
+輸出。確切措辭可能不同，但應指出正在對 read-only
+位置或 object 進行 assignment。
 
 </details>
 
 ---
 
-### 3. Arrays and pointers are related, not identical
+### 3. Arrays 與 pointers 有關聯，但並不相同
 
-The subscript operation is defined through pointer arithmetic:
+subscript operation 是透過 pointer arithmetic 定義的：
 
 ```c
 values[i] == *(values + i)
 ```
 
-For this expression, `values` is converted to a pointer to its first element.
-This conversion happens in most expressions, which explains why array indexing
-and pointer arithmetic are closely related. It does **not** make an array object
-and a pointer object the same thing.
+在此 expression 中，`values` 會轉換成指向第一個 element 的 pointer。
+此 conversion 會發生在多數 expressions 中，這說明了 array indexing
+與 pointer arithmetic 為何密切相關。但這**不會**讓 array object
+與 pointer object 變成同一件事。
 
-But an array object and a pointer object differ:
+但 array object 與 pointer object 存在差異：
 
-- `sizeof array` is the storage for all elements in its declaration scope.
-- `sizeof pointer` is the storage for one address.
-- An array name cannot be assigned a new address.
-- A pointer can be advanced or redirected if it is not `const`.
+- 在 array 的 declaration scope 中，`sizeof array` 是所有 elements 所需的 storage。
+- `sizeof pointer` 是一個 address 所需的 storage。
+- array name 不能被指定新的 address。
+- pointer 若不是 `const`，就能向前移動或改變指向。
 
-Pointer arithmetic is defined only within one array object (plus its one-past
-position). You may form the one-past pointer for loop comparison, but not
-dereference it.
+Pointer arithmetic 只在同一個 array object 內（以及其 one-past
+位置）有定義。你可以形成 one-past pointer 來進行 loop comparison，但不能
+dereference 它。
 
 ```mermaid
 flowchart LR
@@ -341,43 +341,43 @@ flowchart LR
     p3 --> past["values + 4<br/>one past"]
 ```
 
-The arrows in this picture mean “advance by one element.” The first four
-positions designate elements. The fifth may be formed and compared but not
-dereferenced.
+此圖中的箭頭表示「向前移動一個 element」。前四個
+位置指向 elements。第五個位置可以形成並用來比較，但不能
+dereference。
 
-#### Try it now [Core live] — distinguish an array from a pointer (3 minutes)
+#### 立即練習 [課堂核心] — 區分 array 與 pointer（3 分鐘）
 
-Given `int values[4] = {10, 20, 30, 40};` and `int* pointer = values`, decide
-which expressions can recover the four-element count: `sizeof(values) /
-sizeof(values[0])` or `sizeof(pointer) / sizeof(pointer[0])`. Explain why before
-compiling.
+給定 `int values[4] = {10, 20, 30, 40};` 與 `int* pointer = values`，判斷
+哪個 expression 能得出四個 elements 的數量：`sizeof(values) /
+sizeof(values[0])` 或 `sizeof(pointer) / sizeof(pointer[0])`。先說明原因，再
+進行編譯。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Within the block that declares the array, this expression produces four:
+在宣告此 array 的 block 中，這個 expression 會得到四：
 
 ```c
 size_t count = sizeof(values) / sizeof(values[0]);
 printf("count=%zu\n", count);
 ```
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 count=4
 ```
 
-`sizeof(pointer)` measures the pointer object, not the array. Its quotient by
-`sizeof(pointer[0])` is implementation-dependent and is not an element count.
-The same limitation applies to an array parameter because it is adjusted to a
-pointer parameter.
+`sizeof(pointer)` 測量的是 pointer object，而非 array。將它除以
+`sizeof(pointer[0])` 所得的商是 implementation-dependent，並不是 element 數量。
+array parameter 也有相同限制，因為它會被調整成
+pointer parameter。
 
 </details>
 
 ---
 
-### Pointer/array trace
+### Pointer/array 追蹤
 
 ```c
 #include <stddef.h>
@@ -395,15 +395,15 @@ int main(void) {
 }
 ```
 
-`position - first` is measured in elements and has type `ptrdiff_t`; `%td` is
-its matching format. `ptrdiff_t` is designed to hold the difference between two
-pointers into the same array. An `int` may be only 32 bits even when pointers are
-64 bits, so it is not guaranteed to hold that difference. For the small arrays
-used in many programming exercises, an `int` index is often practical; use
-`ptrdiff_t` when the value really is a pointer difference. `<stddef.h>` declares
-the type name when code needs to spell it explicitly.
+`position - first` 以 elements 為單位，type 為 `ptrdiff_t`；`%td` 是
+與它對應的 format。`ptrdiff_t` 用於保存指向同一個 array 的兩個
+pointers 之間的差值。即使 pointers 是 64 bits，`int` 仍可能只有
+32 bits，因此不保證能保存該差值。許多程式練習使用的 arrays
+規模很小，`int` index 往往很實用；當數值確實是 pointer difference 時，使用
+`ptrdiff_t`。程式碼需要明確寫出此 type name 時，由 `<stddef.h>` 提供
+其宣告。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 index=0 value=10
@@ -412,46 +412,46 @@ index=2 value=30
 index=3 value=40
 ```
 
-#### Try it now [Core live] — trace the one-past boundary (4 minutes)
+#### 立即練習 [課堂核心] — 追蹤 one-past 邊界（4 分鐘）
 
-Draw all five pointer positions from `values` through `values + 4`. For each,
-record the result of subtracting `first` and whether dereferencing is permitted.
-Then change the loop condition to `position <= last`; predict the invalid
-operation, but do not run that changed version.
+畫出從 `values` 到 `values + 4` 的全部五個 pointer 位置。對每個位置，
+記錄減去 `first` 的結果，以及是否允許 dereferencing。
+接著將 loop condition 改為 `position <= last`；預測無效的
+operation，但不要執行修改後的版本。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Pointer | Difference from `first` | May dereference? |
+| Pointer | 與 `first` 的差值 | 可以 dereference？ |
 |---------|-------------------------|------------------|
-| `values + 0` | 0 | yes |
-| `values + 1` | 1 | yes |
-| `values + 2` | 2 | yes |
-| `values + 3` | 3 | yes |
-| `values + 4` | 4 | no; one past |
+| `values + 0` | 0 | 可以 |
+| `values + 1` | 1 | 可以 |
+| `values + 2` | 2 | 可以 |
+| `values + 3` | 3 | 可以 |
+| `values + 4` | 4 | 不可以；one past |
 
-With `<=`, the last iteration evaluates `*position` when `position == last`.
-That out-of-bounds access has undefined behavior, so the intentionally broken
-version has no defined output and must not be used as a normal test.
+使用 `<=` 時，最後一次 iteration 會求值 `*position`，此時 `position == last`。
+此 out-of-bounds access 會造成 undefined behavior，因此這個刻意寫錯的
+版本沒有定義好的輸出，也不能當作一般測試使用。
 
 </details>
 
 ---
 
-### Hour 1 supporting extensions
+### 第 1 小時補充延伸
 
-The core route ends with the pointer/array trace. The following short sections
-reinforce Week 3 structure syntax, less common declaration forms, and the
-machine-level analogy; use them after the central pointer model is secure or
-assign them for later study.
+核心路線以 pointer/array 追蹤結束。以下簡短小節
+會加強第 3 週的 structure syntax、較少見的 declaration 形式，以及
+machine-level 類比；請在掌握核心 pointer 模型之後使用，或
+安排為課後學習內容。
 
 <details>
-<summary>Optional machine-code preview: forming an address is not accessing an object</summary>
+<summary>選讀 machine-code 預覽：形成 address 並不等於存取 object</summary>
 
-The following comparison is useful after the C pointer model is clear; it is
-not required to read or write pointer code.
+理解 C pointer 模型後，以下比較會有所幫助；讀寫 pointer 程式碼時，
+不一定需要這段內容。
 
-Consider three different C operations:
+考慮三種不同的 C operations：
 
 ```c
 int value = 7;
@@ -460,27 +460,27 @@ int copy = *pointer;   /* load through an address */
 *pointer = 9;          /* store through an address */
 ```
 
-On x86, an unoptimized compiler may use `lea` to calculate an effective address
-and `mov` with a memory operand to load or store. `lea` does not dereference the
-address, and it is also used for ordinary address arithmetic. Conversely, a
-memory operand such as `[register]` asks the processor to access memory at the
-computed address. Intel and AT&T assembly syntax even write operands in
-different orders, so always read the compiler's selected syntax before tracing.
+在 x86 上，未經最佳化的 compiler 可能使用 `lea` 計算 effective address，
+並使用帶有 memory operand 的 `mov` 來 load 或 store。`lea` 不會 dereference
+address，也會用於一般的 address arithmetic。相對地，
+像 `[register]` 這樣的 memory operand 會要求 processor 存取
+計算出的 address 所在的 memory。Intel 與 AT&T 的 assembly syntax 甚至以
+不同順序書寫 operands，因此追蹤前一定要先讀懂 compiler 選用的 syntax。
 
-This is a useful model, not a source-level equivalence: `&` and `*` obey C's
-type, bounds, **alignment** (the address-placement requirement of a type), and
-lifetime rules, while `lea` and `mov` are target instructions. Optimization may
-keep `value` only in a register or replace the whole fragment with a constant,
-leaving no visible pointer operation.
+這是有用的模型，而不是 source-level 等價關係：`&` 與 `*` 遵循 C 的
+type、bounds、**alignment**（type 對 address 位置的要求），以及
+lifetime 規則，而 `lea` 與 `mov` 是 target instructions。Optimization 可能
+只把 `value` 保存在 register，或將整段程式替換成 constant，
+使得 pointer operation 不再可見。
 
 </details>
 
 ---
 
-#### Initialize structure objects explicitly
+#### 明確初始化 structure objects
 
-Week 3 introduced structures. In C17, a member declaration describes layout;
-it cannot contain an initializer. Initialize each object when it is created:
+第 3 週介紹過 structures。在 C17 中，member declaration 描述 layout；
+其中不能包含 initializer。每個 object 都應在建立時初始化：
 
 ```c
 #include <stddef.h>
@@ -493,44 +493,44 @@ typedef struct Node {
 Node node = {0, NULL}; /* initialize an object when it is created */
 ```
 
-Here `NULL` is C's standard null-pointer constant: it intentionally designates
-no object and must not be dereferenced. The Hour 2 core route uses it to
-represent an unsuccessful search and an empty owner.
+此處的 `NULL` 是 C 的標準 null-pointer constant：它刻意表示不指向
+任何 object，而且不能被 dereference。第 2 小時的核心路線會用它來
+表示搜尋失敗與空的 owner。
 
-Also notice that the body uses `struct Node*`: the typedef name `Node` becomes
-available only after the closing brace. For dynamically allocated nodes,
-initialization happens after allocation and before another function observes
-the node. Week 5 centralizes this work in a node-creation function so every new
-node begins with the same valid invariant.
+也請注意，body 使用的是 `struct Node*`：typedef name `Node` 只有在
+右大括號之後才可使用。對 dynamically allocated nodes 而言，
+initialization 發生在 allocation 之後，且必須早於其他 function 存取
+該 node。第 5 週會將這項工作集中於 node-creation function，讓每個新
+node 都以相同的有效 invariant 開始。
 
-##### Try it now [Extension] — separate a type from an initialized object (2 minutes)
+##### 立即練習 [延伸] — 區分 type 與已初始化的 object（2 分鐘）
 
-Why is `struct Node* next = NULL;` invalid inside the structure body in C17,
-while `Node node = {0, NULL};` is valid after the type definition? Change the
-object initializer to a designated initializer.
+為什麼 C17 的 structure body 中不能寫 `struct Node* next = NULL;`，
+但 type definition 之後可以寫 `Node node = {0, NULL};`？將
+object initializer 改為 designated initializer。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-A structure body contains member declarations, not construction statements or
-per-object default values. The object declaration is where storage is created
-and initialized:
+structure body 包含 member declarations，而不是 construction statements 或
+各個 object 的 default values。storage 是在 object declaration 中建立
+並初始化的：
 
 ```c
 Node node = {.value = 0, .next = NULL};
 ```
 
-This declaration produces no run-time output. Both members have explicit values
-before another function observes the object.
+此 declaration 不會產生 run-time 輸出。兩個 members 都會在
+其他 function 存取 object 前具備明確的值。
 
 </details>
 
 ---
 
-#### Read declarations from the identifier outward
+#### 從 identifier 向外讀 declarations
 
-> **Supporting syntax:** pointer-to-data and pointer-to-const declarations are
-> required. Const-pointer forms are recognition material here.
+> **補充 syntax：** pointer-to-data 與 pointer-to-const declarations 是
+> 必備內容。此處的 Const-pointer 形式只要求能辨識。
 
 ```c
 int value = 0;
@@ -540,79 +540,79 @@ int* const fixed = &value; /* const pointer to int */
 const int* const both = &value;
 ```
 
-`const` applies to the item immediately to its left, or to its right when there
-is no type on the left. Use typedefs sparingly when they clarify a complicated
-callback, but do not use them to avoid learning the underlying type.
+`const` 套用到緊鄰左側的項目；若左側沒有 type，則套用到
+右側。typedefs 若能釐清複雜的 callback，可以少量使用，
+但不要用它們來迴避學習底層的 type。
 
-##### Try it now [Extension] — classify two kinds of `const` (3 minutes)
+##### 立即練習 [延伸] — 分辨兩種 `const`（3 分鐘）
 
-For `const int* read_only` and `int* const fixed`, decide separately whether the
-pointer may be redirected and whether the pointed-to integer may be changed
-through that pointer.
+對 `const int* read_only` 與 `int* const fixed`，分別判斷
+pointer 是否可以改變指向，以及所指向的 integer 是否可以
+透過該 pointer 修改。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Declaration | Redirect pointer? | Write through pointer? |
+| Declaration | 可改變 pointer 指向？ | 可透過 pointer 寫入？ |
 |-------------|-------------------|------------------------|
-| `const int* read_only` | yes | no |
-| `int* const fixed` | no | yes |
-| `const int* const both` | no | no |
+| `const int* read_only` | 可以 | 不可以 |
+| `int* const fixed` | 不可以 | 可以 |
+| `const int* const both` | 不可以 | 不可以 |
 
-This is a type-classification exercise, so it has no run-time output. Attempting
-a forbidden assignment requires a compile-time diagnostic.
+這是 type-classification 練習，因此沒有 run-time 輸出。嘗試
+不允許的 assignment 必須產生 compile-time diagnostic。
 
 </details>
 
 ---
 
-#### Pointer-precedence checkpoint
+#### Pointer-precedence 檢查點
 
-##### Try it now [Extension] — make pointer precedence explicit (4 minutes)
+##### 立即練習 [延伸] — 明確呈現 pointer precedence（4 分鐘）
 
-For each expression, state whether it changes the pointer, the pointed-to value,
-both, or neither: `*p++`, `(*p)++`, `*++p`, `++*p`. Then add parentheses that
-make the parse explicit. Do this after the basic dereference and array-boundary
-trace; these compact forms test precedence but are not preferred introductory
-style. Do not run the code until the prediction is written.
+對每個 expression，說明它會改變 pointer、pointed-to value、
+兩者，還是兩者都不改變：`*p++`、`(*p)++`、`*++p`、`++*p`。接著加入 parentheses，
+讓 parse 明確呈現。先完成基本 dereference 與 array-boundary
+追蹤，再做此練習；這些精簡形式用來測試 precedence，但不是建議的入門
+風格。寫下預測之前，不要執行程式碼。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Expression | Explicit parse | Effect |
+| Expression | 明確的 parse | 效果 |
 |------------|----------------|--------|
-| `*p++` | `*(p++)` | use the current pointed-to value, then advance `p` |
-| `(*p)++` | `(*p)++` | use then increment the pointed-to value |
-| `*++p` | `*(++p)` | advance `p`, then use the newly pointed-to value |
-| `++*p` | `++(*p)` | increment then use the pointed-to value |
+| `*p++` | `*(p++)` | 使用目前的 pointed-to value，接著向前移動 `p` |
+| `(*p)++` | `(*p)++` | 先使用 pointed-to value，再將它 increment |
+| `*++p` | `*(++p)` | 先向前移動 `p`，再使用新的 pointed-to value |
+| `++*p` | `++(*p)` | 先將 pointed-to value increment，再使用它 |
 
-The table gives syntax and sequencing, not permission to access arbitrary
-storage. Every dereference still requires a live in-bounds object, and every
-write requires a modifiable object. There is no single output without a
-specific initial pointer and array.
+此表提供 syntax 與 sequencing，並不代表可以存取任意
+storage。每次 dereference 仍需要存活且 in-bounds 的 object，而每次
+寫入都需要可修改的 object。若沒有
+指定初始 pointer 與 array，就不會有單一確定輸出。
 
 </details>
 
 ---
 
-## Hour 2 — Lifetime and dynamic storage
+## 第 2 小時 — Lifetime 與 dynamic storage
 
-> **Hour 2 route:** [Lifetime is different from scope](#4-lifetime-is-different-from-scope)
-> → [Return a borrowed element pointer](#return-a-borrowed-element-pointer)
+> **第 2 小時路線：** [Lifetime 與 scope 不同](#4-lifetime-與-scope-不同)
+> → [回傳 borrowed element pointer](#回傳-borrowed-element-pointer)
 > → [Dynamic allocation](#5-dynamic-allocation)
-> → [Publish ownership through a double pointer](#publish-ownership-through-a-double-pointer)
-> → [`calloc` and `realloc`](#calloc-and-realloc)
-> → [Build a dynamic buffer incrementally](#build-a-dynamic-buffer-incrementally)
-> → [Lifetime timeline exercise](#lifetime-timeline-exercise)
+> → [透過 double pointer 提交 ownership](#透過-double-pointer-提交-ownership)
+> → [`calloc` 與 `realloc`](#calloc-與-realloc)
+> → [逐步建立 dynamic buffer](#逐步建立-dynamic-buffer)
+> → [Lifetime 時間軸練習](#lifetime-時間軸練習)
 
-### 4. Lifetime is different from scope
+### 4. Lifetime 與 scope 不同
 
-Week 1 introduced C's standard storage-duration terms. An ordinary block-local
-object has **automatic storage duration**: its lifetime normally begins when
-execution enters its block and ends when execution leaves. Implementations
-commonly place such objects on a call stack, but “stack duration” is not a C
-language category. Storage obtained from `malloc` has **allocated storage
-duration** and remains live until a deallocation operation ends it.
+第 1 週介紹了 C 的標準 storage-duration 術語。一般的 block-local
+object 具有 **automatic storage duration**：它的 lifetime 通常在
+執行進入 block 時開始，離開時結束。Implementations
+通常將這類 objects 放在 call stack，但「stack duration」不是 C
+語言的分類。由 `malloc` 取得的 storage 具有 **allocated storage
+duration**，並持續存活，直到 deallocation operation 結束它。
 
 ```c
 int* bad_address(void) {
@@ -621,9 +621,9 @@ int* bad_address(void) {
 }
 ```
 
-The returned pointer dangles. The variable name is out of scope, and more
-importantly the object no longer exists. A valid pointer must designate a live
-object (or be a permitted one-past pointer that is never dereferenced).
+回傳的 pointer 會成為 dangling pointer。variable name 已經不在 scope 中，更
+關鍵的是 object 已不復存在。有效的 pointer 必須指向存活的
+object（或是允許形成、但永不 dereference 的 one-past pointer）。
 
 ```mermaid
 sequenceDiagram
@@ -636,35 +636,35 @@ sequenceDiagram
     Note over Caller: returned pointer is dangling
 ```
 
-#### Try it now [Core live] — separate scope from lifetime (3 minutes)
+#### 立即練習 [課堂核心] — 區分 scope 與 lifetime（3 分鐘）
 
-Classify each returned result: an integer copied from a local variable, the
-address of a local variable, and a successfully allocated pointer. State which
-result the caller owns and which invalid case must not be dereferenced.
+將各個回傳結果分類：從 local variable 複製的 integer、
+local variable 的 address，以及成功 allocate 的 pointer。說明哪個
+結果由 caller 擁有，以及哪個無效情況不能 dereference。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Returned result | Valid after return? | Reason |
+| 回傳結果 | return 後有效？ | 原因 |
 |-----------------|---------------------|--------|
-| copied `int` value | yes | the result value is copied before the local object ends |
-| `&local` | no | the automatic-duration object has ended; the pointer dangles |
-| successful `malloc` result | yes | allocated lifetime continues until deallocation |
+| 複製的 `int` 值 | 是 | result value 在 local object 結束前已被複製 |
+| `&local` | 否 | automatic-duration object 已結束；pointer 成為 dangling pointer |
+| 成功的 `malloc` 結果 | 是 | allocated lifetime 持續到 deallocation |
 
-The caller normally becomes the owner of the successful allocation and must
-eventually release it. The `&local` case has no defined run-time output after a
-dereference; diagnosing the warning and lifetime error is the exercise.
+caller 通常成為成功 allocation 的 owner，而且最終必須
+釋放它。`&local` 的情況在 dereference 後沒有定義好的 run-time
+輸出；本練習是要診斷 warning 與 lifetime error。
 
 </details>
 
 ---
 
-### Return a borrowed element pointer
+### 回傳 borrowed element pointer
 
-Now that lifetime is explicit, we can state the complete contract of the search
-interface previewed in Week 2. It returns either a pointer to an existing array
-element or `NULL`. A null pointer designates no object; code may compare it, but
-must not dereference it:
+現在 lifetime 已明確，我們可以說明第 2 週預覽過的 search
+interface 的完整 contract。它回傳指向既有 array
+element 的 pointer，或 `NULL`。null pointer 不指向任何 object；程式碼可以比較它，但
+不能 dereference 它：
 
 ```c
 #include <stddef.h>
@@ -679,18 +679,18 @@ const int* find_element(const int values[], size_t count, int target) {
 }
 ```
 
-The returned pointer is **borrowed**: it permits access to an object that
-someone else owns. It remains usable only while the caller's array is alive and
-has not been released or relocated. The function does not transfer ownership,
-and only the array's owner is responsible for any later release.
+回傳的 pointer 是 **borrowed**：它允許存取由
+其他人擁有的 object。只有在 caller 的 array 仍存活，且
+尚未被釋放或搬移時，它才可使用。此 function 不會移轉 ownership，
+而後續釋放的責任只屬於 array 的 owner。
 
-#### Try it now [Core live] — preserve a returned pointer's lifetime (3 minutes)
+#### 立即練習 [課堂核心] — 保持回傳 pointer 的 lifetime（3 分鐘）
 
-Call `find_element` on `{4, 7, 9}` for targets `7` and `8`. Check for `NULL`
-before dereferencing and print the results. Who owns the array?
+呼叫 `find_element`，以 `{4, 7, 9}` 為 array，target 分別為 `7` 與 `8`。檢查是否為 `NULL`，
+再 dereference 並印出結果。誰擁有此 array？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 #include <stdio.h>
@@ -707,15 +707,15 @@ int main(void) {
 }
 ```
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 found=7
 missing=1
 ```
 
-`main` owns the automatic-duration array. The search function and returned
-pointer only borrow its elements.
+`main` 擁有此 automatic-duration array。search function 與回傳的
+pointer 只借用它的 elements。
 
 </details>
 
@@ -723,24 +723,24 @@ pointer only borrow its elements.
 
 ### 5. Dynamic allocation
 
-Storage returned by `malloc` is suitably **aligned** for ordinary object types:
-its address satisfies the placement requirement of the object type stored
-there. Its bytes are uninitialized, so read an element only after the program
-has stored a value there. In C, do not cast the result of `malloc`; including
-`<stdlib.h>` provides the required declaration, and the returned `void*`
-converts to an object-pointer type such as `int*`.
+`malloc` 回傳的 storage 對一般 object types 具有適當的 **aligned** 性質：
+其 address 符合儲存在
+該處的 object type 的位置要求。其中的 bytes 尚未初始化，因此只有在程式
+存入值之後才能讀取 element。在 C 中，不要 cast `malloc` 的結果；引入
+`<stdlib.h>` 就能提供所需的 declaration，而回傳的 `void*`
+會轉換成 `int*` 等 object-pointer type。
 
-The successful caller owns the allocation until ownership is transferred or
-`free` releases it. `free` does not set any pointer to `NULL`, and clearing one
-owner variable does not clear other aliases. Those aliases become dangling when
-the allocation's lifetime ends.
+成功呼叫的 caller 擁有該 allocation，直到 ownership 被移轉，或
+`free` 釋放它。`free` 不會將任何 pointer 設為 `NULL`，而清空一個
+owner variable 也不會清空其他 aliases。當 allocation 的 lifetime 結束時，
+這些 aliases 會成為 dangling pointers。
 
-The `NULL` checks below distinguish allocation or input failure from a usable
-nonempty result. As in the search example, never dereference a null pointer.
+下方的 `NULL` 檢查可區分 allocation 或輸入失敗，以及可用的
+非空結果。和搜尋範例一樣，永遠不要 dereference null pointer。
 
-`SIZE_MAX`, provided here by `<stdint.h>`, is the largest value representable by
-`size_t`. The guard below checks `count * sizeof(int)` **before** multiplying,
-so an overflowing byte count cannot be sent to `malloc`.
+`SIZE_MAX` 此處由 `<stdint.h>` 提供，是
+`size_t` 可表示的最大值。下方的 guard 會在乘法**之前**檢查 `count * sizeof(int)`，
+以免將 overflow 的 byte count 傳入 `malloc`。
 
 ```c
 #include <stdint.h>
@@ -763,7 +763,7 @@ int* read_values(size_t count) {
 }
 ```
 
-At the call site:
+在 call site：
 
 ```c
 int main(void) {
@@ -782,23 +782,23 @@ int main(void) {
 }
 ```
 
-Writing `sizeof(*values)` keeps the allocation correct if the pointed-to type is
-changed. Check multiplication before allocation when sizes may be untrusted.
-For count zero, C permits `malloc(0)` to return either `NULL` or a pointer that
-may later be passed to `free`; an interface must document how it represents an
-empty successful result. The next constructor chooses exactly one
-representation: an empty sequence has a `NULL` owner.
+使用 `sizeof(*values)` 可讓 allocation 在 pointed-to type
+改變時仍然正確。size 若可能不可信，就要在 allocation 前檢查乘法。
+當 count 為零時，C 允許 `malloc(0)` 回傳 `NULL`，或是之後可以
+傳入 `free` 的 pointer；interface 必須記載它如何表示
+成功但為空的結果。下一個 constructor 只採用一種
+表示方式：空 sequence 的 owner 為 `NULL`。
 
-#### Try it now [Core live] — trace allocation, initialization, and release (4 minutes)
+#### 立即練習 [課堂核心] — 追蹤 allocation、initialization 與釋放（4 分鐘）
 
-Compile the program and provide `4 8 15` as input. Predict the output and draw
-the owner before allocation, after the three stores, and after `free`. Then
-classify input `4 x 15`: does a partial allocation escape to `main`?
+編譯程式，並提供 `4 8 15` 作為輸入。預測輸出，並畫出
+allocation 前、三次 stores 後，以及 `free` 後的 owner。接著
+判斷輸入 `4 x 15` 的情況：partial allocation 會傳到 `main` 嗎？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-For valid input, the program prints:
+對有效輸入，程式會印出：
 
 ```text
 value[0]=4
@@ -806,7 +806,7 @@ value[1]=8
 value[2]=15
 ```
 
-The owner trace is:
+owner 的追蹤如下：
 
 ```text
 before read_values: no allocation owned by main
@@ -814,20 +814,20 @@ after return:        values -> [4, 8, 15]
 after free:          allocation ended; values is then set to NULL
 ```
 
-For `4 x 15`, the second conversion fails. `read_values` releases the candidate
-block and returns `NULL`, so no partial array becomes owned by `main`. The
-program writes the diagnostic to standard error and returns a nonzero status.
+對 `4 x 15`，第二次 conversion 會失敗。`read_values` 會釋放 candidate
+block 並回傳 `NULL`，因此沒有 partial array 會交由 `main` 擁有。
+程式會將 diagnostic 寫到 standard error，並回傳 nonzero status。
 
 </details>
 
 ---
 
-### Publish ownership through a double pointer
+### 透過 double pointer 提交 ownership
 
-Returning only a pointer cannot distinguish an empty successful sequence from
-failure when both use `NULL`. A Boolean status plus an output parameter keeps
-those results separate. The output parameter has type `int**` because it stores
-the address of the caller's owning `int*`:
+只回傳 pointer 無法區分成功的空 sequence 與
+失敗，因為兩者都使用 `NULL`。Boolean status 搭配 output parameter 可以
+分別表示這些結果。output parameter 的 type 為 `int**`，因為它儲存
+caller 所擁有的 `int*` 的 address：
 
 ```c
 #include <stdbool.h>
@@ -853,14 +853,14 @@ bool make_sequence(size_t size, int** out) {
 }
 ```
 
-Contract:
+Contract：
 
-- `out` designates a live, writable, initialized owning pointer;
-- `*out` must initially be `NULL`, so construction cannot overwrite and leak an
-  existing allocation;
-- success publishes either `NULL` for size zero or an owned zero-initialized
-  block for positive size; and
-- failure leaves the owner unchanged.
+- `out` 指向存活、可寫入且已初始化的 owning pointer；
+- `*out` 一開始必須是 `NULL`，避免 construction 覆寫
+  既有 allocation 並造成 leak；
+- 成功時，size 為零就提交 `NULL`，size 為正就提交擁有的 zero-initialized
+  block；以及
+- 失敗時，owner 維持不變。
 
 ```mermaid
 flowchart LR
@@ -868,47 +868,47 @@ flowchart LR
     owner --> block["allocated int elements"]
 ```
 
-`*out` is the caller's pointer object; `**out` would be its first integer when a
-nonempty block exists.
+`*out` 是 caller 的 pointer object；非空 block 存在時，`**out` 則是其
+第一個 integer。
 
-#### Try it now [Core live] — trace two levels of indirection (5 minutes)
+#### 立即練習 [課堂核心] — 追蹤兩層 indirection（5 分鐘）
 
-Start with `int* values = NULL`. Trace `make_sequence(3, &values)`,
-`make_sequence(0, &empty)`, and `make_sequence(2, NULL)`. Record the Boolean
-result, final owner, and cleanup responsibility. Why does the contract reject a
-non-`NULL` initial owner?
+從 `int* values = NULL` 開始。追蹤 `make_sequence(3, &values)`、
+`make_sequence(0, &empty)` 與 `make_sequence(2, NULL)`。記錄 Boolean
+結果、最終 owner 與 cleanup 責任。為什麼 contract 會拒絕
+初始值不是 `NULL` 的 owner？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Call | Status | Published owner | Responsibility |
+| 呼叫 | Status | 提交的 owner | 責任 |
 |------|--------|-----------------|----------------|
-| size 3 with `&values` | `true` if allocation succeeds | block containing `0, 0, 0` | caller must `free(values)` |
-| size 0 with `&empty` | `true` | `NULL` | no allocation to release |
-| size 2 with `NULL` output | `false` | none | no allocation escapes |
+| size 為 3，使用 `&values` | allocation 成功時為 `true` | 包含 `0, 0, 0` 的 block | caller 必須 `free(values)` |
+| size 為 0，使用 `&empty` | `true` | `NULL` | 沒有需要釋放的 allocation |
+| size 為 2，output 為 `NULL` | `false` | 無 | 沒有 allocation 傳出 |
 
-Overwriting a non-`NULL` owner could discard the only pointer to its existing
-allocation and cause a leak. Requiring an initialized empty owner makes the
-construction transaction explicit. Allocation failure is environment-dependent;
-on that path the owner remains `NULL` and there is no standard output.
+覆寫非 `NULL` 的 owner，可能遺失指向既有
+allocation 的唯一 pointer，並造成 leak。要求已初始化的空 owner，可讓
+construction transaction 明確呈現。Allocation failure 是 environment-dependent；
+在該路徑上，owner 維持 `NULL`，而且沒有 standard output。
 
 </details>
 
 ---
 
-### `calloc` and `realloc`
+### `calloc` 與 `realloc`
 
-> **Core resizing rule:** publish a `realloc` result only after it succeeds.
-> `calloc` and the exact zero-size corner cases are supporting library details.
+> **核心 resizing 規則：** 只有在 `realloc` 成功後，才能提交其結果。
+> `calloc` 與確切的 zero-size corner cases 是補充的 library 細節。
 
-- `calloc(count, size)` allocates and zeroes the bytes.
-- `realloc(old, new_size)` may resize in place or move the allocation.
+- `calloc(count, size)` 會 allocate 並將 bytes 歸零。
+- `realloc(old, new_size)` 可能在原位 resize，也可能搬移 allocation。
 
-For an integer array, the all-zero bytes produced by `calloc` represent integer
-zero. Do not generalize that statement to every possible C type: an all-bits-zero
-object representation is not promised to be a null pointer representation.
+對 integer array，`calloc` 產生的全零 bytes 代表 integer
+零。不要將這項敘述推廣到所有可能的 C type：all-bits-zero
+object representation 不保證是 null pointer representation。
 
-Never overwrite the only pointer before confirming `realloc` succeeded:
+確認 `realloc` 成功之前，絕對不要覆寫唯一的 pointer：
 
 ```c
 #include <stdbool.h>
@@ -934,11 +934,11 @@ bool resize_int_block(int** owner, size_t new_count) {
 }
 ```
 
-The temporary `candidate` makes the operation transactional. Failure leaves
-`*owner` unchanged; success publishes the only pointer that should be used for
-the resized allocation. This minimal helper does not initialize newly added
-elements because it does not receive the old element count. The lecture
-exercise's `resize_sequence` adds that contract.
+暫存的 `candidate` 讓此 operation 具有 transactional 性質。失敗時，
+`*owner` 維持不變；成功時，提交唯一應用來存取
+resized allocation 的 pointer。此最小 helper 不會初始化新增的
+elements，因為它未接收原本的 element 數量。講義
+練習中的 `resize_sequence` 加上了這項 contract。
 
 ```mermaid
 flowchart TD
@@ -949,33 +949,33 @@ flowchart TD
     attempt -->|success| publish["publish returned pointer<br/>old aliases invalid"]
 ```
 
-Handling zero separately avoids the implementation-defined corner cases of
-`realloc(pointer, 0)` in C17.
+另外處理零值，可避開 C17 中
+`realloc(pointer, 0)` 的 implementation-defined corner cases。
 
-#### Try it now [Extension] — preserve ownership on failure (4 minutes)
+#### 立即練習 [延伸] — 失敗時保留 ownership（4 分鐘）
 
-Explain why replacing the temporary-pointer pattern with
-`*owner = realloc(*owner, bytes)` can leak. For success that moves the block,
-classify the old owner value and every pointer into the old block.
+說明為什麼將 temporary-pointer 模式替換成
+`*owner = realloc(*owner, bytes)` 可能造成 leak。若成功時搬移了 block，
+判斷舊 owner 值與所有指向舊 block 的 pointers 的狀態。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-If `realloc` returns `NULL`, direct assignment overwrites the only pointer to the
-still-live old allocation. That allocation can no longer be released: it is
-leaked. With a temporary, the old owner remains available on failure.
+若 `realloc` 回傳 `NULL`，直接 assignment 會覆寫指向
+仍存活的舊 allocation 的唯一 pointer。該 allocation 再也無法釋放，因此發生
+leak。使用 temporary 時，失敗後舊 owner 仍然可用。
 
-On success, the old allocation's lifetime ends even when the returned address
-looks numerically unchanged. The returned pointer becomes the owner; old owner
-copies and interior element pointers must not be used. This reasoning trace has
-no program output because allocation success, failure, and movement are not
-deterministic events to demand from one ordinary run.
+成功時，即使回傳的 address
+看起來數值沒有改變，舊 allocation 的 lifetime 仍會結束。回傳的 pointer 成為 owner；舊 owner 的
+副本與 interior element pointers 都不能使用。此推理追蹤
+沒有程式輸出，因為 allocation 的成功、失敗與搬移並非
+可要求一次普通執行必定呈現的 deterministic 事件。
 
 </details>
 
 ---
 
-### Build a dynamic buffer incrementally
+### 逐步建立 dynamic buffer
 
 ```c
 #include <stdbool.h>
@@ -1038,24 +1038,24 @@ void buffer_destroy(struct IntBuffer* buffer) {
 }
 ```
 
-Invariant: `size <= capacity`; `data == NULL` when capacity is zero; otherwise
-`data` designates storage for at least `capacity` integers. On allocation
-failure, size, capacity, data, and existing elements remain unchanged.
+Invariant：`size <= capacity`；capacity 為零時，`data == NULL`；否則
+`data` 指向至少能容納 `capacity` 個 integers 的 storage。當 allocation
+失敗時，size、capacity、data 與既有 elements 都維持不變。
 
-`buffer_clear` removes the logical elements but deliberately retains capacity
-for reuse. `buffer_destroy` releases the allocation and restores the same empty
-state established by `buffer_init`. The `buffer_push` contract requires an
-initialized buffer; its defensive invariant checks catch several caller errors
-but cannot prove that an arbitrary non-null pointer owns a live allocation.
+`buffer_clear` 會移除 logical elements，但刻意保留 capacity
+以便重複使用。`buffer_destroy` 會釋放 allocation，並恢復與
+`buffer_init` 建立時相同的空狀態。`buffer_push` 的 contract 要求
+buffer 已初始化；其防禦性的 invariant checks 可找出數種 caller errors，
+但無法證明任意 non-null pointer 擁有存活的 allocation。
 
-#### Try it now [Core live] — cross two growth boundaries (5 minutes)
+#### 立即練習 [課堂核心] — 跨越兩個 growth 邊界（5 分鐘）
 
-Initialize a buffer, push integers 1 through 9, and print its size, capacity,
-first value, and last value. Then clear, push 42, destroy, and draw the state
-after each operation.
+初始化 buffer，push integers 1 到 9，並印出其 size、capacity、
+第一個值與最後一個值。接著 clear、push 42、destroy，並畫出
+每次 operation 後的狀態。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 #include <stdio.h>
@@ -1086,7 +1086,7 @@ int main(void) {
 }
 ```
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 size=9 capacity=16 first=1 last=9
@@ -1094,29 +1094,29 @@ after-clear size=1 capacity=16 value=42
 destroyed size=0 capacity=0 null=1
 ```
 
-The ninth insertion crosses the 8→16 boundary. Clearing retains that capacity;
-destruction releases it.
+第九次 insertion 跨越 8→16 的邊界。Clearing 會保留該 capacity；
+destruction 則會釋放它。
 
 </details>
 
 ---
 
-### Lifetime timeline exercise
+### Lifetime 時間軸練習
 
-Draw a timeline for this sequence: declare a buffer, allocate eight elements,
-store a borrowed pointer to element three, reallocate to sixteen elements, and
-free the buffer. Mark the exact events that may invalidate the borrowed pointer.
-`realloc` may move storage even when it succeeds, so every interior pointer must
-be considered invalid after a successful resize.
+為以下序列畫出時間軸：宣告 buffer、allocate 八個 elements、
+儲存指向 element three 的 borrowed pointer、reallocate 為十六個 elements，並
+free 此 buffer。標出可能使 borrowed pointer 失效的確切事件。
+`realloc` 即使成功也可能搬移 storage，因此每個 interior pointer 都必須在
+成功 resize 後視為無效。
 
-#### Try it now [Core live] — mark every lifetime boundary (3 minutes)
+#### 立即練習 [課堂核心] — 標出每個 lifetime 邊界（3 分鐘）
 
-Complete the timeline before expanding the solution. At which operation must a
-fresh pointer to element three be computed, and what happens to that fresh
-pointer after destruction?
+展開解答之前，先完成時間軸。在哪個 operation 之後，必須
+重新計算指向 element three 的 pointer？這個新的
+pointer 在 destruction 後會怎麼樣？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```text
 initialized empty buffer: no element pointer exists
@@ -1126,36 +1126,36 @@ after publishing result: owner -> resized block; recompute owner + 3
 destroy:                 resized block ends; recomputed pointer dangles
 ```
 
-The element pointer must be recomputed from the published `realloc` result. It
-becomes dangling when `buffer_destroy` frees the allocation. Setting the owner
-to `NULL` does not modify this separate borrowed pointer.
+element pointer 必須根據提交的 `realloc` 結果重新計算。當
+`buffer_destroy` 釋放 allocation 時，它會成為 dangling pointer。將 owner
+設為 `NULL` 不會修改這個獨立的 borrowed pointer。
 
 </details>
 
 ---
 
-## Hour 3 — Ownership APIs and memory-error diagnosis
+## 第 3 小時 — Ownership APIs 與 memory-error 診斷
 
-> **Hour 3 route:** [Ownership contracts](#6-ownership-contracts)
-> → [Opaque ownership revisited](#opaque-ownership-revisited)
-> → [Failure patterns and sanitizer command](#7-failure-patterns-and-sanitizer-command)
-> → [Sanitizer triage studio](#sanitizer-triage-studio)
-> → [project ownership audit](#midterm-project-connection--ownership-is-part-of-correctness).
-> [Function pointers and `qsort`](#hour-3-supporting-extension--function-pointers-and-qsort)
-> form a supporting extension after the core route.
+> **第 3 小時路線：** [Ownership contracts](#6-ownership-contracts)
+> → [重新檢視 opaque ownership](#重新檢視-opaque-ownership)
+> → [失敗模式與 sanitizer 指令](#7-失敗模式與-sanitizer-指令)
+> → [Sanitizer 問題判讀工作坊](#sanitizer-問題判讀工作坊)
+> → [專案 ownership 檢查](#期中專案連結--ownership-是-correctness-的一部分)。
+> [Function pointers 與 `qsort`](#第-3-小時補充延伸--function-pointers-與-qsort)
+> 是核心路線之後的補充延伸。
 
 ### 6. Ownership contracts
 
-For every pointer, ask:
+對每個 pointer，問自己：
 
-1. May it be null?
-2. How many elements are valid?
-3. May the callee modify the pointed-to objects?
-4. Who owns the allocation?
-5. Who must free it, and when?
-6. Can another pointer outlive the owner?
+1. 它可以是 null 嗎？
+2. 有多少個 elements 是有效的？
+3. callee 可以修改所指向的 objects 嗎？
+4. 誰擁有 allocation？
+5. 誰必須 free 它，又該在何時執行？
+6. 其他 pointer 可能比 owner 活得更久嗎？
 
-Examples:
+範例：
 
 ```c
 #include <stdbool.h>
@@ -1166,14 +1166,14 @@ bool values_clone(const int* source, size_t count, int** out);
 void values_destroy(int** owner);
 ```
 
-- `print_values` borrows a readable range and neither stores nor frees it.
-- `values_clone` requires an initialized empty output owner and publishes an
-  independent owned copy only on success.
-- `values_destroy` accepts the address of an owner that is either `NULL` or
-  designates one live allocation. It releases and nulls that owner.
+- `print_values` 借用可讀取的範圍，不會儲存或 free 它。
+- `values_clone` 要求已初始化的空 output owner，並且只有成功時才提交
+  獨立且擁有的副本。
+- `values_destroy` 接收 owner 的 address；該 owner 不是 `NULL`，就是
+  指向一個存活的 allocation。它會釋放 allocation 並將 owner 設為 null。
 
-The double pointer in `values_destroy` lets the function change the caller's
-pointer as well as release the allocation:
+`values_destroy` 中的 double pointer 讓 function 可以改變 caller 的
+pointer，同時釋放 allocation：
 
 ```c
 #include <stdlib.h>
@@ -1187,38 +1187,38 @@ void values_destroy(int** owner) {
 }
 ```
 
-This operation clears one owning pointer. It cannot find or clear other aliases;
-they become dangling when the allocation ends.
+此 operation 會清空一個 owning pointer。它無法找到或清空其他 aliases；
+allocation 結束時，這些 aliases 會成為 dangling pointers。
 
-#### Try it now [Core live] — destroy twice and audit an alias (3 minutes)
+#### 立即練習 [課堂核心] — destroy 兩次並檢查 alias（3 分鐘）
 
-Suppose `owner` designates a live block and `alias = owner`. Trace two calls to
-`values_destroy(&owner)`. State the value of `owner` and validity of `alias`
-after each call. Why is the second destroy safe while dereferencing `alias` is
-not?
+假設 `owner` 指向存活的 block，而且 `alias = owner`。追蹤兩次
+`values_destroy(&owner)` 呼叫。說明每次呼叫後 `owner` 的值與 `alias`
+的有效性。為什麼第二次 destroy 是安全的，而 dereferencing `alias`
+卻不安全？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Event | `owner` | `alias` |
+| 事件 | `owner` | `alias` |
 |-------|---------|---------|
-| before destruction | owns live block | borrows same live block |
-| after first call | `NULL` | dangling; must not be used |
-| after second call | `NULL` | still dangling |
+| destruction 前 | 擁有存活的 block | 借用同一個存活的 block |
+| 第一次呼叫後 | `NULL` | dangling；不能使用 |
+| 第二次呼叫後 | `NULL` | 仍然是 dangling |
 
-The second call evaluates `free(NULL)`, which is defined to do nothing. The
-function has no standard output. Nulling the owner prevents accidental repeated
-release through that owner, but it cannot repair separate aliases.
+第二次呼叫會求值 `free(NULL)`，其定義是不做任何事。
+此 function 沒有 standard output。將 owner 設為 null 可避免意外地透過
+該 owner 重複釋放，但無法修復獨立的 aliases。
 
 </details>
 
 ---
 
-### Opaque ownership revisited
+### 重新檢視 opaque ownership
 
-Week 3 postponed opaque structures until allocation and destruction could be
-stated precisely. A header can now hide layout while publishing the ownership
-operations:
+第 3 週將 opaque structures 延後到能精確說明 allocation 與 destruction
+時再討論。現在 header 可以隱藏 layout，同時公開 ownership
+operations：
 
 ```c
 /* counter.h */
@@ -1230,119 +1230,119 @@ long counter_value(const Counter* counter); /* borrows read-only object */
 void counter_destroy(Counter** owner);      /* releases and nulls */
 ```
 
-Clients can declare `Counter*` but not `Counter` itself because the header does
-not reveal its size. The implementation file defines `struct Counter`, allocates
-it in `counter_create`, and releases it in `counter_destroy`. This stronger
-encapsulation costs an explicit ownership protocol.
+Clients 可以宣告 `Counter*`，但不能宣告 `Counter` 本身，因為 header
+沒有揭露其 size。implementation file 定義 `struct Counter`，並
+在 `counter_create` 中 allocate 它，在 `counter_destroy` 中釋放它。這種更強的
+encapsulation 需要明確的 ownership protocol。
 
-#### Try it now [Extension] — classify an opaque interface (3 minutes)
+#### 立即練習 [延伸] — 將 opaque interface 分類（3 分鐘）
 
-For every operation above, label each pointer as owner, writable borrower,
-read-only borrower, or pointer to owner. Which declaration prevents a client
-from writing `counter.value = -1`?
+對上方每個 operation，將各個 pointer 標為 owner、writable borrower、
+read-only borrower 或 pointer to owner。哪個 declaration 能防止 client
+寫出 `counter.value = -1`？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-- `counter_create` returns a new owner.
-- `counter_increment` receives a writable borrower.
-- `counter_value` receives a read-only borrower.
-- `counter_destroy` receives the address of the owner so it can release and
-  null it.
-- The incomplete `Counter` type prevents direct object declaration and member
-  access in client code.
+- `counter_create` 回傳新的 owner。
+- `counter_increment` 接收 writable borrower。
+- `counter_value` 接收 read-only borrower。
+- `counter_destroy` 接收 owner 的 address，因此可以釋放 allocation 並
+  將 owner 設為 null。
+- incomplete `Counter` type 會阻止 client code 直接進行 object declaration 與 member
+  access。
 
-These are declarations and contracts, so they have no run-time output until an
-implementation and driver are supplied.
+這些是 declarations 與 contracts，因此在提供
+implementation 與 driver 之前，不會有 run-time 輸出。
 
 </details>
 
 ---
 
-### 7. Failure patterns and sanitizer command
+### 7. 失敗模式與 sanitizer 指令
 
-| Failure | Meaning |
+| 失敗 | 意義 |
 |---------|---------|
-| Leak | The last usable pointer is lost before `free` |
-| Dangling pointer | The pointer remains after the object's lifetime ends |
-| Use after free | A dangling pointer is used after deallocation |
-| Double free | The same allocation is released more than once |
-| Invalid free | `free` receives an automatic-duration or interior address rather than an active allocation pointer |
-| Null dereference | `*pointer` is evaluated when `pointer == NULL` |
-| Buffer overflow | Access goes before or beyond an allocation |
+| Leak | 在 `free` 之前遺失最後一個可用的 pointer |
+| Dangling pointer | object 的 lifetime 結束後，pointer 仍然存在 |
+| Use after free | deallocation 之後仍使用 dangling pointer |
+| Double free | 同一個 allocation 被釋放超過一次 |
+| Invalid free | `free` 接收 automatic-duration 或 interior address，而非有效的 allocation pointer |
+| Null dereference | 求值 `*pointer` 時，`pointer == NULL` |
+| Buffer overflow | 存取超出 allocation 的起點或終點 |
 
-Compile memory-sensitive work with sanitizers:
+編譯涉及 memory 安全的程式時，使用 sanitizers：
 
 ```sh
 cc -std=c17 -Wall -Wextra -Wpedantic -g \
   -fsanitize=address,undefined program.c -o program
 ```
 
-`-std=c17` selects this course's C language version; `-Wall -Wextra -Wpedantic`
-enable the usual warning set, and `-g` adds source-level debug information.
-`-fsanitize=address,undefined` instruments the executable so the available
-AddressSanitizer and UndefinedBehaviorSanitizer checks can report many invalid
-operations near where they occur. These options are compiler facilities rather
-than C17 features, and they do not prove correctness.
+`-std=c17` 選擇本課程的 C 語言版本；`-Wall -Wextra -Wpedantic`
+啟用常用的 warning set，而 `-g` 加入 source-level debug information。
+`-fsanitize=address,undefined` 會對 executable 進行 instrumentation，讓可用的
+AddressSanitizer 與 UndefinedBehaviorSanitizer checks 能在多種無效
+operations 的發生位置附近回報問題。這些選項是 compiler 提供的功能，
+而非 C17 features，也無法證明程式正確。
 
-#### Try it now [Core live] — classify failures by lifetime and bounds (4 minutes)
+#### 立即練習 [課堂核心] — 依 lifetime 與 bounds 將失敗分類（4 分鐘）
 
-Classify each scenario and state the smallest contract-level repair:
+將各個情境分類，並說明最小的 contract-level 修正：
 
-1. overwrite the only owner with a failed `realloc` result;
-2. call `free(&local)` for an automatic-duration integer;
-3. keep `&values[2]`, successfully resize `values`, then read through the old
-   element pointer;
-4. write `values[count]` when exactly `count` elements are allocated.
+1. 用失敗的 `realloc` 結果覆寫唯一的 owner；
+2. 對 automatic-duration integer 呼叫 `free(&local)`；
+3. 保留 `&values[2]`，成功 resize `values`，接著透過舊的
+   element pointer 讀取；
+4. 寫入 `values[count]`，但只 allocate 了恰好 `count` 個 elements。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Scenario | Failure | Contract-level repair |
+| 情境 | 失敗 | Contract-level 修正 |
 |----------|---------|-----------------------|
-| overwrite owner on failed `realloc` | leak | receive the result in a temporary and publish only on success |
-| `free(&local)` | invalid free | release only a live allocation pointer or `NULL` |
-| use old element pointer after resize | dangling use | recompute borrowers from the published resized owner |
-| write element `count` | buffer overflow | restrict valid indices to `[0, count)` |
+| `realloc` 失敗時覆寫 owner | leak | 使用 temporary 接收結果，且只在成功時提交 |
+| `free(&local)` | invalid free | 只釋放存活的 allocation pointer 或 `NULL` |
+| resize 後使用舊 element pointer | dangling use | 根據提交的 resized owner 重新計算 borrowers |
+| 寫入 element `count` | buffer overflow | 將有效 indices 限制於 `[0, count)` |
 
-These are failure classifications, not requests to run undefined behavior. A
-repaired valid test may produce ordinary output; the invalid versions have no
-portable expected output.
+這些是失敗分類，而不是要求執行 undefined behavior。
+修正後的有效測試可能產生一般輸出；無效版本沒有
+portable 的預期輸出。
 
 </details>
 
 ---
 
-### Sanitizer triage studio
+### Sanitizer 問題判讀工作坊
 
-Run a seeded program containing one each of these actual memory errors:
+執行預先植入錯誤的程式，其中各包含一次以下實際 memory errors：
 
-- read one element beyond a dynamic array;
-- use an element pointer after `realloc`;
-- free an automatic-duration address;
-- leak on an early return;
-- dereference a null output parameter.
+- 讀取 dynamic array 結尾之外的一個 element；
+- 在 `realloc` 後使用 element pointer；
+- free automatic-duration address；
+- 在 early return 時造成 leak；
+- dereference null output parameter。
 
-For every report the available toolchain produces, record the invalid
-operation, where the affected allocation was created or released, and the
-ownership rule that would have prevented it. Fix the contract or control flow,
-not only the single reported line. AddressSanitizer and UndefinedBehaviorSanitizer
-availability varies by compiler and platform. Leak detection is a separate
-capability and is not enabled or available with every AddressSanitizer build, so
-the lab must identify the expected tool rather than promise one report for every
-seeded defect.
+對可用 toolchain 產生的每份 report，記錄無效的
+operation、受影響的 allocation 在何處建立或釋放，以及
+原本可預防問題的 ownership 規則。應修正 contract 或 control flow，
+而不只是被回報的那一行。AddressSanitizer 與 UndefinedBehaviorSanitizer
+是否可用，會因 compiler 與平台而不同。Leak detection 是獨立的
+功能，並非每個 AddressSanitizer build 都有啟用或提供，因此
+lab 必須指出預期使用的工具，不能保證每個
+植入缺陷都會產生一份 report。
 
-Then call the `values_destroy` implementation above twice with the same owning
-pointer. This is a **safety check**, not a seeded error: the first call sets the
-owner to `NULL`, and the second call reaches `free(NULL)`, which is defined to do
-nothing. Confirm that the sanitizer emits no report. Contrast this behavior with
-a destroy function that frees the allocation but leaves the caller's pointer
-dangling.
+接著使用相同的 owning pointer，呼叫上方的 `values_destroy` implementation
+兩次。這是**安全檢查**，而不是植入錯誤：第一次呼叫會將
+owner 設為 `NULL`，第二次呼叫則執行 `free(NULL)`，其定義是
+不做任何事。確認 sanitizer 沒有產生 report。將此行為與
+另一種 destroy function 比較：它釋放 allocation，卻讓 caller 的 pointer
+成為 dangling pointer。
 
-#### Try it now [Core live] — read a use-after-free report (5 minutes)
+#### 立即練習 [課堂核心] — 判讀 use-after-free report（5 分鐘）
 
-Run this deliberately invalid program only in the controlled sanitizer studio.
-Before running, identify the owner, alias, lifetime end, and invalid operation:
+只有在受控的 sanitizer 工作坊中，才能執行這個刻意寫成無效的程式。
+執行前，先辨識 owner、alias、lifetime 結束點與無效 operation：
 
 ```c
 #include <stdio.h>
@@ -1363,49 +1363,49 @@ int main(void) {
 ```
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-- `owner` initially owns the allocation.
-- `alias` borrows the same integer.
-- `free(owner)` ends the allocation's lifetime.
-- `owner = NULL` changes only the owner variable; `alias` still contains a
-  dangling pointer value.
-- `*alias` is the invalid read.
+- `owner` 一開始擁有該 allocation。
+- `alias` 借用同一個 integer。
+- `free(owner)` 結束 allocation 的 lifetime。
+- `owner = NULL` 只改變 owner variable；`alias` 仍然包含
+  dangling pointer 值。
+- `*alias` 是無效的讀取。
 
-An AddressSanitizer-enabled run commonly reports a heap-use-after-free and
-points to both the invalid read and the earlier deallocation. Exact wording and
-addresses are not portable. The program has no defined standard output; remove
-the post-lifetime dereference rather than relying on a particular observed
-number.
+啟用 AddressSanitizer 後執行，通常會回報 heap-use-after-free，並
+指出無效讀取與先前 deallocation 的位置。確切措辭與
+addresses 並不 portable。此程式沒有定義好的 standard output；應移除
+lifetime 結束後的 dereference，而不是依賴某次觀察到的
+數值。
 
 </details>
 
 ---
 
-### Midterm project connection — Ownership is part of correctness
+### 期中專案連結 — Ownership 是 correctness 的一部分
 
-Create an ownership table for the compiler scaffold. Include the token list,
-token array if present, AST nodes, and any temporary buffers. For each resource,
-record its creator, owner, borrowers, successful release, and error-path
-release. Then trace three cases: valid input, invalid syntax after partial AST
-construction, and a semantic failure after parsing.
+為 compiler scaffold 建立 ownership 表格。包含 token list、
+token array（若有）、AST nodes 與所有 temporary buffers。對每項 resource，
+記錄其 creator、owner、borrowers、成功路徑的釋放，以及 error-path
+釋放。接著追蹤三種情況：有效輸入、partial AST
+construction 後的無效 syntax，以及 parsing 後的 semantic failure。
 
-An LLM can propose likely owners, but it cannot infer the contract reliably
-from a partial snippet. Check call sites and cleanup code, run a small case under
-AddressSanitizer, and reject any suggested repair that merely suppresses a
-report without restoring the ownership rule.
+LLM 可以提出可能的 owners，但無法只從 partial snippet
+可靠地推斷 contract。檢查 call sites 與 cleanup code，在
+AddressSanitizer 下執行小型案例，並拒絕任何只壓制
+report、卻未恢復 ownership 規則的建議修正。
 
-#### Try it now [Core live] — audit one error path (3 minutes)
+#### 立即練習 [課堂核心] — 檢查一條 error path（3 分鐘）
 
-Choose one parser function that allocates a node and then calls another
-operation that may fail. Draw the success and failure paths. For every allocated
-object, identify the owner immediately before the possible failure and the
-reachable cleanup operation. Do not implement a project TODO during this trace.
+選擇一個 parser function，它會 allocate node，接著呼叫另一個
+可能失敗的 operation。畫出成功與失敗路徑。對每個 allocated
+object，辨識可能失敗前一刻的 owner，以及
+可到達的 cleanup operation。追蹤時不要實作專案 TODO。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-A valid audit has this shape; exact names must come from the released scaffold:
+有效的檢查具有以下形式；確切名稱必須取自發布的 scaffold：
 
 ```text
 allocate node
@@ -1416,22 +1416,22 @@ allocate node
                                propagate failure
 ```
 
-The important evidence is a reachable release on every path after successful
-allocation and an explicit ownership transfer when a callee retains the node.
-The trace itself has no standard output; sanitizer results and public tests are
-subsequent evidence, not substitutes for the ownership map.
+關鍵證據是成功 allocation 後的每條路徑都有可到達的
+釋放，而且 callee 保留 node 時有明確的 ownership transfer。
+追蹤本身沒有 standard output；sanitizer 結果與 public tests 是
+後續證據，不能取代 ownership map。
 
 </details>
 
 ---
 
-### Hour 3 supporting extension — Function pointers and `qsort`
+### 第 3 小時補充延伸 — Function pointers 與 `qsort`
 
-> **Supporting extension:** first secure allocation, ownership, and ordinary
-> typed function calls. This section shows why callback types and `void*` exist;
-> it is not a prerequisite for the dynamic-array exercise or ownership audit.
+> **補充延伸：** 先掌握 allocation、ownership 與一般的
+> typed function calls。本節說明 callback types 與 `void*` 存在的原因；
+> 它不是 dynamic-array 練習或 ownership 檢查的先備知識。
 
-A function pointer stores callable behavior with a particular signature:
+function pointer 儲存具有特定 signature 的可呼叫行為：
 
 ```c
 #include <stdio.h>
@@ -1453,26 +1453,26 @@ int main(void) {
 }
 ```
 
-The declaration is read from the identifier outward: `operation` is a pointer
-to a function receiving two `int` arguments and returning `int`. In this
-context, a function name such as `add` is converted to a pointer to that
-function.
+此 declaration 從 identifier 向外讀：`operation` 是指向
+接收兩個 `int` arguments 並回傳 `int` 的 function 的 pointer。在此
+context 中，像 `add` 這樣的 function name 會轉換成指向該
+function 的 pointer。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 add=7
 multiply=12
 ```
 
-#### Try it now [Extension] — match a callback signature (3 minutes)
+#### 立即練習 [延伸] — 配對 callback signature（3 分鐘）
 
-Add a subtraction function, assign it to `operation`, and print the result for
-`3` and `4`. Then explain why a function returning `double` is not compatible
-with this pointer type.
+新增 subtraction function，將它指定給 `operation`，並印出以
+`3` 與 `4` 為參數的結果。接著說明為什麼回傳 `double` 的 function
+與此 pointer type 不相容。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 int subtract(int left, int right) {
@@ -1480,29 +1480,29 @@ int subtract(int left, int right) {
 }
 ```
 
-After `operation = subtract`, `printf("subtract=%d\n", operation(3, 4));`
-prints:
+在 `operation = subtract` 之後，`printf("subtract=%d\n", operation(3, 4));`
+會印出：
 
 ```text
 subtract=-1
 ```
 
-A callback type includes both parameter types and return type. Assigning an
-incompatible function pointer requires a diagnostic; forcing a call through an
-incompatible type produces undefined behavior.
+callback type 包含 parameter types 與 return type。指定
+不相容的 function pointer 時，必須產生 diagnostic；強迫透過
+不相容的 type 呼叫，會造成 undefined behavior。
 
 </details>
 
-The C standard library provides a generic sorting function:
+C standard library 提供通用的 sorting function：
 
 ```c
 void qsort(void* base, size_t count, size_t element_size,
            int (*compare)(const void*, const void*));
 ```
 
-`qsort` does not know the element type. The caller supplies the array address,
-number of elements, size of one element, and a comparator function. For an
-array of student records:
+`qsort` 不知道 element type。caller 提供 array address、
+elements 數量、單一 element 的 size，以及 comparator function。以
+student records 的 array 為例：
 
 ```c
 #include <stdio.h>
@@ -1530,13 +1530,13 @@ int main(void) {
 }
 ```
 
-The callback borrows two elements as `const void*` and converts them to the
-actual element type. C permits the implicit conversion from `const void*` to
-another object-pointer type; the equivalent C++ code has different rules.
-Returning only `-1`, `0`, or `1` avoids overflow errors such as
-`return a->id - b->id`.
+callback 以 `const void*` 借用兩個 elements，並將它們轉換成
+實際的 element type。C 允許從 `const void*` 隱式轉換為
+其他 object-pointer type；等效的 C++ 程式碼有不同規則。
+只回傳 `-1`、`0` 或 `1`，可避免
+`return a->id - b->id` 這類 overflow errors。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 id=2 grade=95.0
@@ -1544,23 +1544,23 @@ id=3 grade=88.5
 id=1 grade=82.0
 ```
 
-The compiler can diagnose an incompatible comparator function type at the call
-site. It cannot verify that a correctly typed `const void*` comparator casts to
-the actual element type or that `element_size` describes the array elements;
-violating those requirements can produce undefined behavior. This comparator
-assumes every grade is finite; a design that permits a not-a-number value
-(NaN) must define and implement an explicit total ordering for it.
+compiler 能在 call site 診斷不相容的 comparator function type。
+它無法驗證 type 正確的 `const void*` comparator 是否 cast 成
+實際 element type，也無法驗證 `element_size` 是否描述 array elements；
+違反這些要求可能造成 undefined behavior。此 comparator
+假設每個 grade 都是 finite；若設計允許 not-a-number 值
+（NaN），就必須為其定義並實作明確的 total ordering。
 
-#### Try it now [Extension] — make ties deterministic (4 minutes)
+#### 立即練習 [延伸] — 讓同分結果保持 deterministic（4 分鐘）
 
-Add another student with grade `88.5`. Extend the comparator so equal grades are
-ordered by increasing ID. Do not assume that `qsort` preserves the input order
-of equivalent elements.
+新增一位 grade 為 `88.5` 的 student。擴充 comparator，讓相同 grades
+依 ID 遞增排序。不要假設 `qsort` 會保留 equivalent elements
+的輸入順序。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-After the grade comparisons, use an overflow-safe ID comparison:
+在 grade comparisons 之後，使用不會 overflow 的 ID comparison：
 
 ```c
 if (b->grade > a->grade) {
@@ -1572,46 +1572,46 @@ if (b->grade < a->grade) {
 return (a->id > b->id) - (a->id < b->id);
 ```
 
-The comparator now defines an explicit result for the tie. Exact full output
-depends on the added student's ID, but among equal finite grades the smaller ID
-must appear first.
+此 comparator 現在為同分情況定義了明確結果。確切的完整輸出
+取決於新增 student 的 ID，但在相同的 finite grades 中，較小的 ID
+必須先出現。
 
 </details>
 
 ---
 
-## Check yourself
+## 自我檢核
 
-1. Draw the objects and arrows after `int x = 3; int* p = &x;`.
-2. Why is returning `&local` invalid but returning a `malloc` result possible?
-3. What is the difference between `const int* p` and `int* const p`?
-4. Why may an array's one-past pointer be compared but not dereferenced?
-5. Write the ownership contract for `read_values`.
-6. Why does `make_sequence` receive `int**`, and why must the caller initialize
-   its owner to `NULL`?
-7. Explain why `values = realloc(values, bytes)` can leak memory.
-8. Which aliases become invalid after successful `realloc` or `free`?
-9. What four pieces of information let `qsort` operate on an array whose element
-   type it does not know?
-
----
-
-## Summary
-
-- A pointer is a typed address; dereferencing designates the pointed-to object.
-- Valid access requires correct bounds, alignment, type, and lifetime.
-- Automatic and allocated storage have different lifetime boundaries.
-- `malloc` storage is uninitialized; successful allocation establishes an owner.
-- Every successful allocation needs one eventual release on every path.
-- Pointer contracts should state nullability, size, mutability, and ownership.
-- `realloc` requires a temporary result and invalidates old aliases on success.
+1. 畫出 `int x = 3; int* p = &x;` 之後的 objects 與箭頭。
+2. 為什麼回傳 `&local` 無效，但回傳 `malloc` 結果可行？
+3. `const int* p` 與 `int* const p` 有什麼差異？
+4. 為什麼 array 的 one-past pointer 可以比較，卻不能 dereference？
+5. 寫出 `read_values` 的 ownership contract。
+6. 為什麼 `make_sequence` 接收 `int**`，而且 caller 必須將
+   owner 初始化為 `NULL`？
+7. 說明為什麼 `values = realloc(values, bytes)` 可能造成 memory leak。
+8. 在成功的 `realloc` 或 `free` 之後，哪些 aliases 會失效？
+9. 哪四項資訊讓 `qsort` 能操作一個它不知道 element
+   type 的 array？
 
 ---
 
-## References and source materials
+## 重點整理
 
-- [Instructor handout: *From C to Assembly*](../../assets/references/from_c_to_assembly.pdf)
-- [Instructor slides: *Assembly*](../../assets/references/lee_assembly.pptx)
+- pointer 是具有 type 的 address；dereferencing 會指向 pointed-to object。
+- 有效存取需要正確的 bounds、alignment、type 與 lifetime。
+- Automatic 與 allocated storage 有不同的 lifetime 邊界。
+- `malloc` storage 尚未初始化；成功的 allocation 會建立 owner。
+- 每個成功的 allocation 都必須在每條路徑上最終釋放一次。
+- Pointer contracts 應說明 nullability、size、mutability 與 ownership。
+- `realloc` 需要 temporary result，且成功時會讓舊 aliases 失效。
+
+---
+
+## 參考資料與來源教材
+
+- [教師講義：*From C to Assembly*](../../assets/references/from_c_to_assembly.pdf)
+- [教師投影片：*Assembly*](../../assets/references/lee_assembly.pptx)
 - [Pointers](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/pointer/Pointer.md>)
-- [Supplementary C material: memory and pointers](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Supplementary%20Material%201/README.md>)
-- [2025 Week 1 notebook: linked-list foundations (Colab)](https://colab.research.google.com/drive/1Asu-XpzM8EfrB8ANf4ze4ejDUdgIFGq0)
+- [C 補充教材：memory 與 pointers](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Supplementary%20Material%201/README.md>)
+- [2025 年第 1 週 notebook：linked-list 基礎（Colab）](https://colab.research.google.com/drive/1Asu-XpzM8EfrB8ANf4ze4ejDUdgIFGq0)

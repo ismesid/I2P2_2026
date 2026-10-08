@@ -1,108 +1,108 @@
-# Week 2 Lecture Notes — Functions, Arrays, and Strings in C
+# 第 2 週課堂講義 — C 的 function、array 與 string
 
-> September 15, 2026 · Source lineage: previous function, array, string, and
-> input notes, reorganized around comparisons with Python sequences
+> 2026 年 9 月 15 日 · 來源沿革：先前的 function、array、string 與
+> input 筆記，重新以和 Python sequence 的比較為主軸編排
 
-> Python bridge: [Python Contrast Companion for Week 2](week02_python_companion.md)
-
----
-
-## Student route
-
-- **Core:** write typed functions, traverse an array with an explicit length,
-  build/query a boundary-indexed prefix table, trace lower/upper bounds, and keep
-  a C string inside its destination capacity.
-- **Practice:** complete the [Week 2 exercise](lecture_exercises/week02_ex.md)
-  and use its test driver before opening [the complete example](examples.c).
-  The prefix implementation remains undisclosed; the example demonstrates the
-  neighboring array, boundary-search, and bounded-string techniques.
-- **Supporting ideas:** Big-O vocabulary and overflow contracts explain design
-  choices; first make the ordinary loop or query correct on the stated inputs.
-- **Python bridge:** use the companion for sequence comparisons rather than
-  reading it as a second required lecture.
+> Python 銜接：[第 2 週 Python 對照補充教材](week02_python_companion.md)
 
 ---
 
-## Learning objectives
+## 學習路線
 
-By the end of this lecture, you should be able to:
-
-1. Declare, define, and call a C function through a prototype.
-2. Explain pass-by-value and use return values for explicit results.
-3. Read simple address-passing interfaces that use `&`, `*`, and pointer parameters.
-4. Traverse arrays without reading outside their bounds.
-5. Build a prefix table and answer half-open range queries from it.
-6. Specify lower and upper boundaries in sorted data and trace their binary
-   search invariants.
-7. Explain the null-terminated representation of a C string.
-8. Design interfaces that pass an array together with its length or capacity.
+- **核心：** 撰寫具有 type 的 function，以明確的 length 走訪 array，
+  建立／查詢以 boundary 為 index 的 prefix table，追蹤 lower／upper bound，並確保
+  C string 維持在目的地 capacity 內。
+- **練習：** 完成[第 2 週練習](lecture_exercises/week02_ex.md)，
+  並在開啟[完整範例](examples.c)之前使用其 test driver。
+  prefix 的實作仍未公開；範例示範與其相關的
+  array、boundary search 與有界 string 技巧。
+- **輔助觀念：** Big-O 詞彙與 overflow contract 可解釋設計
+  選擇；先讓一般的 loop 或 query 對指定 input 正確運作。
+- **Python 銜接：** 使用補充教材比較 sequence，
+  而非當成第二堂必修課來閱讀。
 
 ---
 
-## Three-hour plan
+## 學習目標
 
-| Hour | Main question | In-class production |
+完成本堂課後，你應能：
+
+1. 透過 prototype 宣告、定義並呼叫 C function。
+2. 說明 pass-by-value，並以 return value 明確提供結果。
+3. 閱讀使用 `&`、`*` 與 pointer parameter 的簡單 address-passing interface。
+4. 走訪 array，且不讀取其 bounds 之外的位置。
+5. 建立 prefix table，並用它回答 half-open range query。
+6. 指定 sorted data 中的 lower 與 upper boundary，並追蹤其 binary
+   search invariant。
+7. 說明 C string 的 null-terminated 表示方式。
+8. 設計將 array 與其 length 或 capacity 一併傳入的 interface。
+
+---
+
+## 三小時課程規劃
+
+| 小時 | 核心問題 | 課堂產出 |
 |------|---------------|---------------------|
-| 1 | How do typed functions decompose a program? | Specify and implement a small function family |
-| 2 | How can precomputation replace repeated query work? | Trace prefix and sorted-boundary queries |
-| 3 | How do null-terminated strings remain inside their buffers? | Build and test bounded string utilities |
+| 1 | 具有 type 的 function 如何拆解程式？ | 指定並實作一小組 function |
+| 2 | precomputation 如何取代重複的 query 工作？ | 追蹤 prefix 與 sorted-boundary query |
+| 3 | null-terminated string 如何維持在 buffer 內？ | 建立並測試有界 string 工具 |
 
-Each hour interleaves about 35–45 minutes of explanation and live coding with
-roughly 15–20 minutes of core practice. The remaining time supports discussion,
-transitions, and a short break; optional exercises can use that buffer when the
-class is ready.
+每小時交錯安排約 35–45 分鐘的講解與現場 coding，搭配
+約 15–20 分鐘的核心練習。其餘時間用於討論、
+轉場與短暫休息；若全班已準備好，也可利用這段彈性時間
+進行選做練習。
 
-### Inline practice routine
+### 隨堂練習流程
 
-Each **Try it now** stop asks you to retrieve and apply the idea that immediately
-precedes it. Use a small scratch source file unless the question asks only for a
-trace or contract:
+每個**立即練習**停點都要求你回想並應用剛剛
+介紹的觀念。除非題目只要求追蹤或撰寫 contract，否則請使用一個小型的
+練習 source file：
 
-1. predict the result, state change, or diagnostic before compiling;
-2. make the requested change yourself;
-3. compile C code with `-std=c17 -Wall -Wextra -Wpedantic`;
-4. run the stated normal and boundary cases; and
-5. explain which contract or invariant justifies the result.
+1. 在編譯前預測結果、state 變化或 diagnostic；
+2. 自行完成要求的修改；
+3. 使用 `-std=c17 -Wall -Wextra -Wpedantic` 編譯 C code；
+4. 執行指定的一般與 boundary case；以及
+5. 說明哪個 contract 或 invariant 能支持此結果。
 
-Only the question is visible initially. Expand **Reveal solution** after making
-and testing your own attempt. A solution panel gives the expected output, trace,
-or reason that a declaration-only example has no run-time output. It does not
-reveal the prefix-table implementation used in the separate exercise.
+一開始只會顯示題目。自行嘗試並測試後，再開啟**展開解答**。
+解答區會提供預期輸出、追蹤過程，
+或說明為何只有 declaration 的範例沒有 run-time output。它不會
+公開另一份練習所使用的 prefix-table 實作。
 
-- **Core live:** part of the planned in-class path.
-- **Extension:** additional practice for the lab, a break, or later study.
+- **課堂核心：** 屬於規劃中的課堂學習路線。
+- **延伸：** 可在 lab、休息時間或日後複習時進行的額外練習。
 
-The core-live exercises total about 16 minutes in Hour 1, 18 minutes in Hour 2,
-and 19 minutes in Hour 3.
+課堂核心練習在第 1 小時合計約 16 分鐘，第 2 小時約 18 分鐘，
+第 3 小時約 19 分鐘。
 
 ---
 
-## Hour 1 — Function contracts and decomposition
+## 第 1 小時 — Function contract 與拆解
 
-> **Hour 1 route:** [Functions are typed contracts](#1-functions-are-typed-contracts)
-> → [C passes arguments by value](#2-c-passes-arguments-by-value)
-> → [Address-passing bridge](#address-passing-bridge)
-> → [Decompose before coding](#decompose-before-coding)
-> → [Scope, storage duration, and `static` locals](#scope-storage-duration-and-static-locals)
-> → [contract checkpoint](#try-it-now-core-live--hour-1-contract-checkpoint-4-minutes)
+> **第 1 小時路線：** [Function 是具有 type 的 contract](#1-function-是具有-type-的-contract)
+> → [C 以 value 傳遞 argument](#2-c-以-value-傳遞-argument)
+> → [Address-passing 銜接](#address-passing-銜接)
+> → [Coding 前先拆解](#coding-前先拆解)
+> → [Scope、storage duration 與 `static` local](#scopestorage-duration-與-static-local)
+> → [contract 檢核](#立即練習-課堂核心--第-1-小時-contract-檢核4-分鐘)
 
-### 1. Functions are typed contracts
+### 1. Function 是具有 type 的 contract
 
-Python checks a function call while the program runs. A C compiler checks a
-prototype before generating the call.
+Python 在程式執行時檢查 function call。C compiler 在
+產生 call 之前會檢查 prototype。
 
 ```c
 int clamp_value(int value, int low, int high);
 ```
 
-This declaration promises:
+這個 declaration 承諾：
 
-- the function is named `clamp_value`;
-- it receives three `int` values;
-- it returns one `int`; and
-- callers may use the prototype before the full definition appears.
+- function 的名稱為 `clamp_value`；
+- 它接收三個 `int` value；
+- 它回傳一個 `int`；以及
+- caller 可以在完整 definition 出現之前使用 prototype。
 
-The definition provides the implementation:
+definition 提供實作：
 
 ```c
 int clamp_value(int value, int low, int high) {
@@ -116,20 +116,20 @@ int clamp_value(int value, int low, int high) {
 }
 ```
 
-The precondition is `low <= high`. The postcondition is that the result lies in
-the closed interval from `low` through `high`: values below the interval become
-`low`, values above it become `high`, and values already inside are unchanged.
+precondition 是 `low <= high`。postcondition 是結果位於
+從 `low` 到 `high` 的 closed interval 內：低於 interval 的 value 變成
+`low`，高於 interval 的 value 變成 `high`，原本位於其中的 value 則保持不變。
 
-Keep the declaration and definition identical. A prototype placed in a header
-allows multiple source files to share the same contract.
+保持 declaration 與 definition 一致。放在 header 中的 prototype
+能讓多個 source file 共用同一份 contract。
 
-#### Try it now [Core live] — call the contract (3 minutes)
+#### 立即練習 [課堂核心] — 呼叫 contract（3 分鐘）
 
-Call `clamp_value` for `-3`, `7`, and `20` with the interval `[0, 10]`. Predict
-the three results, then print them on one line.
+呼叫 `clamp_value`，分別傳入 `-3`、`7` 與 `20`，並使用 interval `[0, 10]`。先預測
+三個結果，再將它們印在同一行。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 #include <stdio.h>
@@ -141,27 +141,27 @@ int main(void) {
 }
 ```
 
-The three calls exercise the below-range, inside-range, and above-range cases.
+這三次 call 分別涵蓋低於範圍、位於範圍內，以及高於範圍的情況。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 0 7 10
 ```
 
-The prototype by itself produces no run-time output; it only gives the compiler
-the function's name, parameter types, and result type.
+prototype 本身不會產生 run-time output；它只提供 compiler
+function 的名稱、parameter type 與結果 type。
 
 </details>
 
 ---
 
-### 2. C passes arguments by value
+### 2. C 以 value 傳遞 argument
 
-Each parameter starts as a copy of the corresponding argument.
-The return type `void` means that a function reports no result value. In a
-parameter list, as in `main(void)`, `void` means that the function accepts
-no arguments. These are two roles for the same keyword.
+每個 parameter 一開始都是對應 argument 的 copy。
+return type `void` 表示 function 不提供結果 value。在
+parameter list 中，例如 `main(void)`，`void` 表示 function 不接收
+任何 argument。同一個 keyword 在這裡具有兩種用途。
 
 ```c
 void ineffective_swap(int a, int b) {
@@ -171,8 +171,8 @@ void ineffective_swap(int a, int b) {
 }
 ```
 
-Calling `ineffective_swap(x, y)` does not modify `x` or `y`. Later we will pass
-their addresses when mutation is required. For now, prefer returning the result:
+呼叫 `ineffective_swap(x, y)` 不會修改 `x` 或 `y`。稍後若需要 mutation，會傳入
+它們的 address。目前則優先使用 return value 傳回結果：
 
 ```c
 int absolute_value(int value) {
@@ -183,16 +183,16 @@ int absolute_value(int value) {
 }
 ```
 
-Precondition: `value != INT_MIN`, because `-INT_MIN` may overflow. Interfaces
-should make important preconditions visible in names, documentation, or checks.
+precondition：`value != INT_MIN`，因為 `-INT_MIN` 可能造成 overflow。interface
+應透過名稱、文件或檢查，明確呈現重要的 precondition。
 
-#### Try it now [Core live] — distinguish caller state from parameter copies (2 minutes)
+#### 立即練習 [課堂核心] — 區分 caller state 與 parameter copy（2 分鐘）
 
-Start with `x = 3` and `y = 8`. Call `ineffective_swap(x, y)`, then print both
-variables and `absolute_value(-7)`. Predict the output before compiling.
+從 `x = 3` 與 `y = 8` 開始。呼叫 `ineffective_swap(x, y)`，再印出這兩個
+variable 與 `absolute_value(-7)`。在編譯前預測 output。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 int main(void) {
@@ -204,11 +204,11 @@ int main(void) {
 }
 ```
 
-This fragment belongs in a file that includes `<stdio.h>` and contains the two
-function definitions above. Assigning to `a` and `b` changes only their local
-copies.
+這段程式應放在引入 `<stdio.h>` 並包含上述兩個
+function definition 的檔案中。對 `a` 與 `b` 的 assignment 只會改變它們的 local
+copy。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 x=3 y=8 absolute=7
@@ -218,10 +218,10 @@ x=3 y=8 absolute=7
 
 ---
 
-### Address-passing bridge
+### Address-passing 銜接
 
-Several ordinary C interfaces cannot wait until the full pointer lecture. Read
-these three symbols operationally for now:
+一些常見的 C interface 必須在完整的 pointer 課程之前先介紹。目前先從操作角度閱讀
+這三個符號：
 
 ```c
 int value = 10;
@@ -229,11 +229,11 @@ int* address = &value; /* address points to value */
 *address = 20;         /* write through the address */
 ```
 
-- In a declaration, `int* address` means “address of an `int`.”
-- In an expression, `&value` obtains the address of `value`.
-- In an expression, `*address` designates the pointed-to `int`.
+- 在 declaration 中，`int* address` 表示「一個 `int` 的 address」。
+- 在 expression 中，`&value` 取得 `value` 的 address。
+- 在 expression 中，`*address` 指定所指向的 `int`。
 
-That is enough to repair the swap contract:
+這些知識已足以修正 swap contract：
 
 ```c
 void swap(int* left, int* right) {
@@ -249,21 +249,21 @@ void example(void) {
 }
 ```
 
-Both pointers are **borrowed**: `swap` receives temporary access to the caller's
-objects but neither owns their storage nor keeps the addresses after returning.
-They must designate valid `int` objects for the whole call. The Week 4 lecture
-notes develop the complete model: pointer arithmetic, nullability, array
-relationships, lifetime, dynamic allocation, and ownership. Until then, do not
-infer that every address may be dereferenced or retained.
+兩個 pointer 都是 **borrowed**：`swap` 暫時取得 caller 的
+object 存取權，但不擁有其 storage，也不會在 return 後保留 address。
+在整個 call 期間，它們都必須指定有效的 `int` object。第 4 週課堂
+筆記會建立完整模型：pointer arithmetic、nullability、array
+關係、lifetime、dynamic allocation 與 ownership。在此之前，請勿
+推論每個 address 都能被 dereference 或保留。
 
-#### Try it now [Core live] — trace an address-based update (3 minutes)
+#### 立即練習 [課堂核心] — 追蹤透過 address 進行的更新（3 分鐘）
 
-Add a `printf` call after `swap(&x, &y)` in `example`, or perform the same call
-inside `main`. Predict the values of `x` and `y`, then identify exactly which two
-assignments modify the caller's objects.
+加入 `printf` call，放在 `swap(&x, &y)` 之後，位置在 `example` 中；或執行相同 call，
+`main` 中執行相同 call。先預測 `x` 與 `y` 的 value，再指出究竟哪兩個
+assignment 會修改 caller 的 object。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 int main(void) {
@@ -275,11 +275,11 @@ int main(void) {
 }
 ```
 
-The assignments `*left = *right` and `*right = temporary` write through the
-borrowed addresses. This fragment requires `<stdio.h>` and the `swap` definition
-above.
+assignment `*left = *right` 與 `*right = temporary` 透過
+borrowed address 進行寫入。這段程式需要 `<stdio.h>` 與上方的 `swap` definition
+才能使用。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 x=2 y=1
@@ -289,19 +289,19 @@ x=2 y=1
 
 ---
 
-### Decompose before coding
+### Coding 前先拆解
 
-The previous function notes built a program in stages. For a judge problem that
-reads scores, removes one lowest score, and reports a rounded average, first
-write contracts rather than a long `main`:
+先前的 function 筆記分階段建立程式。面對一題要求
+讀取分數、移除一個最低分，並回報四捨五入平均值的 judge 題目時，先
+撰寫 contract，再撰寫長篇 `main`：
 
-The declarations below preview one notation used in Hour 2: an array parameter
-such as `int scores[]` designates a sequence whose element count must arrive in
-a separate parameter. Read that role operationally here; the contiguous array
-representation and its adjustment to a pointer are explained before any array
-implementation later in this note. The `const` in `const int scores[]` records
-that the function observes those elements without modifying them; Hour 2
-develops that promise in context.
+下列 declaration 預先展示第 2 小時會使用的一種表示法：array parameter
+例如 `int scores[]`，指定一個 sequence，其 element count 必須透過
+另一個 parameter 傳入。這裡先從操作角度理解其用途；contiguous array
+的表示方式與其調整為 pointer 的規則，會在本筆記後續任何 array
+實作之前說明。`const` 用在 `const int scores[]` 中，記錄了
+function 只觀察這些 element 而不修改它們；第 2 小時會在情境中
+進一步說明這項承諾。
 
 ```c
 int read_scores(int scores[], size_t capacity, size_t* count);
@@ -310,55 +310,55 @@ void remove_at(int scores[], size_t* count, size_t index);
 double mean(const int scores[], size_t count);
 ```
 
-For each function, state:
+對每個 function，請說明：
 
-- valid inputs and array bounds;
-- which objects may change;
-- how failure is reported;
-- the valid range of the result;
-- whether empty input is permitted.
+- 有效 input 與 array bounds；
+- 哪些 object 可以改變；
+- 如何回報 failure；
+- 結果的有效範圍；
+- 是否允許 empty input。
 
-This is C's explicit replacement for many run-time assumptions hidden inside a
-short Python expression.
+C 藉由這些明確規範，取代許多隱藏在簡短
+Python expression 裡的 run-time 假設。
 
-#### Try it now [Core live] — annotate four interfaces (4 minutes)
+#### 立即練習 [課堂核心] — 標註四個 interface（4 分鐘）
 
-For each prototype, mark every parameter as input, output, or input/output.
-State the empty-input policy and failure channel. Do not write the function
-bodies yet.
+對每個 prototype，將每個 parameter 標註為 input、output 或 input/output。
+說明 empty-input policy 與 failure channel。暫時不要撰寫 function
+body。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-One coherent contract set is:
+一組相互一致的 contract 如下：
 
-| Function | Parameter roles | Empty input and failure policy |
+| Function | Parameter 用途 | Empty input 與 failure policy |
 |----------|-----------------|--------------------------------|
-| `read_scores` | `scores` is output storage; `capacity` is input; `count` is output | Empty input may succeed with `*count == 0`; return zero for malformed input or insufficient capacity |
-| `index_of_minimum` | `scores` and `count` are input | Require `count > 0`; no separate failure result is available |
-| `remove_at` | `scores` and `count` are input/output; `index` is input | Require `index < *count`; the prototype provides no failure result |
-| `mean` | `scores` and `count` are input | This contract defines an empty mean as `0.0`; the Hour 2 implementation follows that policy |
+| `read_scores` | `scores` 是 output storage；`capacity` 是 input；`count` 是 output | Empty input 可在 `*count == 0` 時成功；input 格式錯誤或 capacity 不足時回傳零 |
+| `index_of_minimum` | `scores` 與 `count` 是 input | 要求 `count > 0`；沒有獨立的 failure result |
+| `remove_at` | `scores` 與 `count` 是 input/output；`index` 是 input | 要求 `index < *count`；prototype 沒有提供 failure result |
+| `mean` | `scores` 與 `count` 是 input | 這份 contract 將 empty mean 定義為 `0.0`；第 2 小時的實作遵循這項 policy |
 
-These declarations produce no run-time output. The exercise is about making
-their contracts explicit before implementation. A production design could
-change a `void` or index result to `int` when invalid input must be reported.
+這些 declaration 不會產生 run-time output。此練習的重點是在
+實作之前先明確寫出 contract。在正式設計中，若需要回報
+invalid input，可以將 `void` 或 index 結果改成 `int`。
 
 </details>
 
 ---
 
-### Scope, storage duration, and `static` locals
+### Scope、storage duration 與 `static` local
 
-> **Supporting C feature:** local variables normally exist only during one
-> function call. Read this section to recognize the less common case in which a
-> local name refers to storage that lasts for the whole program; ordinary local
-> variables remain the default in this course.
+> **輔助 C 特性：** local variable 通常只存在於一次
+> function call 期間。閱讀本節，以辨識較少見的情況：
+> local name 參照持續整個程式期間的 storage；一般的 local
+> variable 仍是本課程的預設選擇。
 
-**Scope** determines where a name may be used. **Storage duration** determines
-how long the named object exists. An ordinary block-local object with automatic
-storage duration exists each time execution enters its block and ceases to
-exist when execution leaves that block. A `static` local instead exists for the
-program's entire execution and retains its value between calls:
+**Scope** 決定名稱可以在哪裡使用。**Storage duration** 決定
+具名 object 存在多久。具有 automatic
+storage duration 的一般 block-local object，會在每次執行進入其 block 時存在，並在
+執行離開該 block 時結束存在。相較之下，`static` local 存在於
+整個程式執行期間，且在不同 call 之間保留其 value：
 
 ```c
 unsigned int next_sequence(void) {
@@ -367,23 +367,23 @@ unsigned int next_sequence(void) {
 }
 ```
 
-This hidden state can be useful, but every caller shares it and tests become
-order-dependent. Prefer state passed explicitly through a parameter when it is
-part of the function's contract; Week 3 introduces structures for grouping
-several related state values.
+這種隱藏的 state 有時有用，但每個 caller 都會共用它，使測試
+取決於順序。若 state 屬於 function contract 的一部分，優先
+透過 parameter 明確傳遞；第 3 週會介紹用於整合
+多個相關 state value 的 structure。
 
-#### Try it now [Extension] — expose persistent local state (2 minutes)
+#### 立即練習 [延伸] — 呈現持續存在的 local state（2 分鐘）
 
-Call `next_sequence` three times in one `printf` statement. Then rewrite the
-test using three separate calls. Why is the second form better for reasoning
-about the output?
+呼叫 `next_sequence` 三次，放在同一個 `printf` statement 中。接著改寫
+測試，改成三次獨立 call。為何第二種形式更容易推理
+output？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Do not rely on the evaluation order of function-call arguments to associate the
-three returned values with three textual positions. Store the results in
-separate statements:
+不要依賴 function-call argument 的 evaluation order，來將
+三個 return value 對應到三個文字位置。請在
+不同 statement 中儲存結果：
 
 ```c
 unsigned int first = next_sequence();
@@ -392,30 +392,30 @@ unsigned int third = next_sequence();
 printf("%u %u %u\n", first, second, third);
 ```
 
-**Expected output in a fresh program:**
+**新啟動的程式中，預期輸出：**
 
 ```text
 1 2 3
 ```
 
-The explicit sequence also makes it clear that earlier calls in the same
-process would change these numbers.
+明確的 sequence 也能清楚說明：同一個
+process 中較早的 call 會改變這些數字。
 
 </details>
 
 ---
 
-### Try it now [Core live] — Hour 1 contract checkpoint (4 minutes)
+### 立即練習 [課堂核心] — 第 1 小時 contract 檢核（4 分鐘）
 
-Write a prototype and five-line contract for a function that finds a target in
-an integer array. Compare three result designs: return an index with a sentinel,
-return success plus an output parameter, or return a pointer to the element.
-The third design will be analyzed fully after the Week 4 lecture notes.
+為一個在 integer array 中尋找 target 的 function 撰寫 prototype 與五行 contract。
+比較三種結果設計：回傳帶有 sentinel 的 index、
+回傳 success 並搭配 output parameter，或回傳指向 element 的 pointer。
+第三種設計會在第 4 週課堂筆記之後完整分析。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Three possible interfaces are:
+三種可能的 interface 如下：
 
 ```c
 size_t find_index_or_count(const int values[], size_t count, int target);
@@ -423,69 +423,69 @@ int find_index(const int values[], size_t count, int target, size_t* result);
 const int* find_element(const int values[], size_t count, int target);
 ```
 
-- The first can return `count` as a past-the-end “not found” sentinel.
-- The second returns success separately and writes an index only on success.
-- The third can return a pointer to the element or `NULL`, but its validity and
-  lifetime require the Week 4 pointer model. `NULL` is C's conventional way to
-  say that a pointer designates no object; Hour 3 introduces it through `fgets`.
+- 第一種可回傳 `count`，作為 past-the-end 的「找不到」sentinel。
+- 第二種另外回傳 success，並且只有成功時才寫入 index。
+- 第三種可回傳指向 element 的 pointer 或 `NULL`，但其 validity 與
+  lifetime 需要第 4 週的 pointer 模型。`NULL` 是 C 慣用的表示法，
+  表示 pointer 未指定任何 object；第 3 小時會透過 `fgets` 介紹它。
 
-All three require a valid readable range of `count` elements, preserve the
-array, and return the first match if duplicates exist. These are declarations,
-so they produce no run-time output.
+三種設計都要求具有 `count` 個 element 的有效可讀範圍，保留
+array，並在存在重複值時回傳第一個 match。這些都是 declaration，
+所以不會產生 run-time output。
 
 </details>
 
 ---
 
-## Hour 2 — Array layout, prefix queries, and boundary algorithms
+## 第 2 小時 — Array layout、prefix query 與 boundary algorithm
 
-> **Hour 2 route:** [Arrays are contiguous fixed-size storage](#3-arrays-are-contiguous-fixed-size-storage)
-> → [Boundary reasoning](#4-boundary-reasoning)
-> → [one-pass minimum](#worked-example-one-pass-minimum)
-> → [Prefix tables: precompute repeated range queries](#5-prefix-tables-precompute-repeated-range-queries)
-> → [Build/query contracts before implementation](#buildquery-contracts-before-implementation)
-> → [Prefixes of derived contributions](#prefixes-of-derived-contributions)
-> → [prefix-table checkpoint](#try-it-now-extension--prefix-table-checkpoint-4-minutes)
-> → [Lower and upper boundaries in sorted data](#6-lower-and-upper-boundaries-in-sorted-data)
-> → [A monotone-predicate view of binary search](#a-monotone-predicate-view-of-binary-search)
-> → [Sorting is a precondition, not part of the search](#sorting-is-a-precondition-not-part-of-the-search)
-> → [boundary-search checkpoint](#try-it-now-extension--boundary-search-checkpoint-4-minutes)
+> **第 2 小時路線：** [Array 是 contiguous fixed-size storage](#3-array-是-contiguous-fixed-size-storage)
+> → [Boundary 推理](#4-boundary-推理)
+> → [one-pass minimum](#示範範例one-pass-minimum)
+> → [Prefix table：預先計算重複的 range query](#5-prefix-table預先計算重複的-range-query)
+> → [實作之前先撰寫 build／query contract](#實作之前先撰寫-buildquery-contract)
+> → [衍生 contribution 的 prefix](#衍生-contribution-的-prefix)
+> → [prefix-table 檢核](#立即練習-延伸--prefix-table-檢核4-分鐘)
+> → [Sorted data 中的 lower 與 upper boundary](#6-sorted-data-中的-lower-與-upper-boundary)
+> → [以 monotone predicate 理解 binary search](#以-monotone-predicate-理解-binary-search)
+> → [Sorting 是 precondition，並非 search 的一部分](#sorting-是-precondition並非-search-的一部分)
+> → [boundary-search 檢核](#立即練習-延伸--boundary-search-檢核4-分鐘)
 
-> **Algorithm applications:** prefix tables and boundary search develop array
-> invariants and indexing discipline. They are problem-solving techniques, not
-> additional C syntax; trace the contracts before memorizing either loop.
+> **Algorithm 應用：** prefix table 與 boundary search 培養 array
+> invariant 與 indexing 的嚴謹習慣。它們是解題技巧，並非
+> 額外的 C syntax；在記憶任一 loop 之前，先追蹤 contract。
 
-### 3. Arrays are contiguous fixed-size storage
+### 3. Array 是 contiguous fixed-size storage
 
 ```c
 int scores[5] = {91, 82, 73, 94, 85};
 ```
 
-The array contains five adjacent `int` objects indexed from `0` through `4`.
-Unlike a Python list, it does not remember a run-time length and cannot grow.
+array 包含五個相鄰的 `int` object，index 從 `0` 到 `4`。
+與 Python list 不同，它不會記住 run-time length，也無法增長。
 
-Inside the same scope as the array declaration:
+在與 array declaration 相同的 scope 中：
 
 ```c
 size_t count = sizeof(scores) / sizeof(scores[0]);
 ```
 
-As in Week 1, `size_t` is the standard unsigned type used for object sizes and
-array indices; `<stddef.h>` provides its declaration. `sizeof(scores)` is the
-total storage in bytes, and `sizeof(scores[0])` is the storage for one element,
-so their quotient is the element count.
+如第 1 週所述，`size_t` 是用於 object size 與
+array index 的標準 unsigned type；`<stddef.h>` 提供其 declaration。`sizeof(scores)` 是
+以 byte 計算的總 storage，而 `sizeof(scores[0])` 是單一 element 的 storage，
+所以兩者的商就是 element count。
 
-This expression does **not** work in a function parameter. In most expressions,
-an array is converted to a pointer to its first element. Therefore every general
-array function must receive a length explicitly.
+這個 expression 在 function parameter 中**無法**正確運作。在多數 expression 中，
+array 會轉換成指向第一個 element 的 pointer。因此，每個通用的
+array function 都必須明確接收 length。
 
-The qualifier `const` creates a read-only access path. Read
-`const int values[]` as “an array of `int` elements that this function promises
-not to modify through `values`.” The compiler rejects `values[0] = 7` inside
-such a function. It does not make the caller's array permanently immutable: the
-caller or another non-`const` access path may still modify it. Week 4 develops
-the corresponding pointer types; for now, use `const` whenever an array
-parameter is input-only.
+qualifier `const` 建立一條 read-only access path。請將
+`const int values[]` 理解為「由 `int` element 組成的 array，此 function 承諾
+不會透過 `values` 修改它們」。compiler 會拒絕 `values[0] = 7` 出現在
+這類 function 內。它不會使 caller 的 array 永久 immutable：
+caller 或其他非 `const` 的 access path 仍可修改它。第 4 週會說明
+對應的 pointer type；目前請使用 `const`，只要 array
+parameter 僅用於 input。
 
 ```c
 double mean(const int values[], size_t count) {
@@ -500,27 +500,27 @@ double mean(const int values[], size_t count) {
 }
 ```
 
-Using `double` for the running total avoids signed-integer overflow, although
-floating-point addition can round. If exact integer accumulation is required,
-the contract must instead bound the input or check arithmetic in a suitable
-integer type. This implementation deliberately defines the mean of an empty
-range as `0.0`; another application could reject it instead.
+使用 `double` 保存 running total 可避免 signed-integer overflow，但
+floating-point addition 可能有 rounding。若需要精確的 integer accumulation，
+contract 就必須限制 input，或在適當的
+integer type 中檢查 arithmetic。此實作刻意將 empty
+range 的 mean 定義為 `0.0`；其他應用也可選擇拒絕它。
 
 ```c
 int maximum(const int values[], size_t count, int* result);
 ```
 
-The return value can report whether a maximum exists; `result` can hold the
-answer. We introduce this output-parameter style fully with pointers.
+return value 可回報 maximum 是否存在；`result` 可儲存
+答案。我們會在 pointer 課程中完整介紹這種 output-parameter 風格。
 
-#### Try it now [Core live] — separate capacity from element count (2 minutes)
+#### 立即練習 [課堂核心] — 區分 capacity 與 element count（2 分鐘）
 
-Print the element count of `scores` with `%zu` and its mean with one digit after
-the decimal point. Then imagine passing `scores` to `maximum`: which value must
-travel beside the array, and why can the function not recover it with `sizeof`?
+印出 `scores` 的 element count，使用 `%zu`，並將 mean 印到
+小數點後一位。接著想像將 `scores` 傳入 `maximum`：哪個 value 必須
+與 array 一併傳入？為何 function 無法透過 `sizeof` 取得它？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 int main(void) {
@@ -531,27 +531,27 @@ int main(void) {
 }
 ```
 
-This fragment requires `<stddef.h>` and `<stdio.h>`. The call to `maximum` must
-receive `count` explicitly. In a function parameter, the array notation is
-adjusted to a pointer type, so `sizeof(values)` would measure that pointer, not
-the caller's array.
+這段程式需要 `<stddef.h>` 與 `<stdio.h>`。呼叫 `maximum` 必須
+明確傳入 `count`。在 function parameter 中，array 表示法會
+調整為 pointer type，所以 `sizeof(values)` 測量的是該 pointer，並非
+caller 的 array。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 count=5 mean=85.0
 ```
 
-The `maximum` prototype itself is a declaration and produces no output.
+`maximum` prototype 本身是 declaration，不會產生 output。
 
 </details>
 
 ---
 
-### 4. Boundary reasoning
+### 4. Boundary 推理
 
-For `count` valid elements, the canonical traversal appears in this complete
-function:
+對於 `count` 個有效 element，典型的走訪方式如下列完整
+function 所示：
 
 ```c
 int sum_array(const int values[], size_t count) {
@@ -564,27 +564,27 @@ int sum_array(const int values[], size_t count) {
 }
 ```
 
-The function requires the mathematical sum to be representable as `int`.
-Later integer-arithmetic exercises will develop checked alternatives for wider
-input domains.
+此 function 要求數學上的 sum 必須能以 `int` 表示。
+後續的 integer-arithmetic 練習會為更廣的
+input domain 提供具有檢查的替代方案。
 
-Ask three questions about every loop:
+對每個 loop，都要問三個問題：
 
-1. What is the first valid index?
-2. What is the first invalid index?
-3. Does the loop condition exclude the first invalid index?
+1. 第一個有效 index 是什麼？
+2. 第一個無效 index 是什麼？
+3. loop condition 是否排除了第一個無效 index？
 
-Accessing `values[count]` is undefined behavior. C has no automatic bounds
-check and no `IndexError`.
+存取 `values[count]` 是 undefined behavior。C 沒有自動的 bounds
+check，也沒有 `IndexError`。
 
-#### Try it now [Core live] — defend the first invalid boundary (3 minutes)
+#### 立即練習 [課堂核心] — 守住第一個無效 boundary（3 分鐘）
 
-Call `sum_array` for `{4, -1, 3}`. Predict the result. Then explain why changing
-`i < count` to `i <= count` is not a valid way to include the last element.
-Repair the condition before running the program.
+呼叫 `sum_array`，傳入 `{4, -1, 3}`。預測結果，再說明為何將
+`i < count` 改成 `i <= count` 無法正確納入最後一個 element。
+執行程式前，先修正 condition。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 int main(void) {
@@ -594,11 +594,11 @@ int main(void) {
 }
 ```
 
-The valid indices are `0`, `1`, and `2`; the condition `i < 3` visits all three.
-With `i <= 3`, the last iteration would evaluate `values[3]`, outside the array,
-and the program would have undefined behavior. Do not run that defective form.
+有效 index 是 `0`、`1` 與 `2`；condition `i < 3` 會走訪三者。
+若使用 `i <= 3`，最後一次 iteration 會求值 array 之外的 `values[3]`，
+而程式會出現 undefined behavior。不要執行這個有缺陷的版本。
 
-**Expected output of the correct program:**
+**正確程式的預期輸出：**
 
 ```text
 sum=6
@@ -608,7 +608,7 @@ sum=6
 
 ---
 
-### Worked example: one-pass minimum
+### 示範範例：one-pass minimum
 
 ```c
 #include <stddef.h>
@@ -624,32 +624,32 @@ int minimum(const int values[], size_t count) {
 }
 ```
 
-The precondition is `count > 0`; the caller must establish it before the call.
-At the start of each iteration, `result` is the minimum of the already-processed
-half-open range `[0, i)`. The next comparison extends that claim to `[0, i + 1)`.
-This is an example of a **loop invariant**: a statement that is true before and
-after every iteration and explains why the final answer is correct.
+precondition 是 `count > 0`；caller 必須在 call 之前確保它成立。
+每次 iteration 開始時，`result` 是已處理
+half-open range `[0, i)` 的 minimum。下一次比較將此主張擴展到 `[0, i + 1)`。
+這是 **loop invariant** 的例子：在每次 iteration 前後都成立的
+敘述，能解釋為何最終答案正確。
 
-A production interface may need to represent an empty result. Week 3 introduces
-structures that can combine status and data, and Week 4 develops output-pointer
-interfaces. This week's version keeps the focus on array bounds, function
-preconditions, and the traversal proof.
+正式使用的 interface 可能需要表示 empty result。第 3 週會介紹
+可整合 status 與 data 的 structure，第 4 週則會說明 output-pointer
+interface。本週的版本將重點放在 array bounds、function
+precondition 與走訪的證明。
 
-#### Try it now [Core live] — state and use the loop invariant (3 minutes)
+#### 立即練習 [課堂核心] — 陳述並使用 loop invariant（3 分鐘）
 
-Trace `minimum` on `{8, -4, 6, -4}`. Before each iteration, record the processed
-range and `result`. Then test the function in a small `main`. Do not call it with
-an empty array because that would violate its stated precondition.
+追蹤 `minimum`，使用 `{8, -4, 6, -4}`。在每次 iteration 前，記錄已處理的
+range 與 `result`，再於小型 `main` 中測試 function。不要以
+empty array 呼叫它，因為這會違反其指定的 precondition。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Before iteration | Processed range | `result` |
+| Iteration 前 | 已處理 range | `result` |
 |------------------|-----------------|----------|
 | `i == 1` | `[0, 1)` → `{8}` | `8` |
 | `i == 2` | `[0, 2)` → `{8, -4}` | `-4` |
 | `i == 3` | `[0, 3)` → `{8, -4, 6}` | `-4` |
-| After the loop | `[0, 4)` → all elements | `-4` |
+| loop 之後 | `[0, 4)` → 所有 element | `-4` |
 
 ```c
 int main(void) {
@@ -659,9 +659,9 @@ int main(void) {
 }
 ```
 
-This fragment requires `<stdio.h>` and the `minimum` definition above.
+這段程式需要 `<stdio.h>` 與上方的 `minimum` definition。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 minimum=-4
@@ -671,38 +671,38 @@ minimum=-4
 
 ---
 
-### 5. Prefix tables: precompute repeated range queries
+### 5. Prefix table：預先計算重複的 range query
 
-Here **precomputation** means performing an algorithmic preparation pass before
-the queries arrive. It is unrelated to the C preprocessor that expands
-`#include` and macros before compilation.
+此處的 **precomputation** 是指在 query 到達之前，先執行一次
+algorithm 的準備程序。它與在 compilation 前展開
+`#include` 與 macro 的 C preprocessor 無關。
 
-#### A small vocabulary for running time
+#### Running time 的基本詞彙
 
-Before comparing implementations, we need a way to describe how their work
-grows with the input. Let `n` be the number of array elements and `q` the number
-of queries. **Big-O notation** describes an upper bound on the growth rate; it
-does not measure seconds and it normally omits fixed multipliers and smaller
-terms.
+比較實作之前，需要先有一種方式，描述其工作量如何
+隨 input 成長。令 `n` 為 array element 的數量，`q` 為
+query 的數量。**Big-O notation** 描述 growth rate 的 upper bound；它
+不測量秒數，通常也會省略固定 multiplier 與較小的
+項。
 
-- **O(1), constant time:** the number of relevant operations does not grow with
-  `n`. Reading one array element and subtracting two prefix totals are examples.
-- **O(n), linear time:** doubling the number of elements can roughly double the
-  work. One complete array traversal is linear.
-- **O(log n), logarithmic time:** each step discards a fixed fraction of the
-  remaining candidates. Binary search has this shape.
-- **O(n log n):** many comparison-based sorting algorithms have this growth
-  rate.
+- **O(1)，constant time：** 相關 operation 的數量不會隨
+  `n` 成長。讀取一個 array element，以及相減兩個 prefix total，都是例子。
+- **O(n)，linear time：** element 數量加倍時，工作量大致也會
+  加倍。一次完整的 array traversal 是 linear。
+- **O(log n)，logarithmic time：** 每一步都會排除剩餘
+  candidate 的固定比例。Binary search 就具有這種形式。
+- **O(n log n)：** 許多 comparison-based sorting algorithm 具有這種 growth
+  rate。
 
-Big-O is only one design constraint. Two O(n) loops can have different
-constants, memory access patterns, and failure behavior. For this course, first
-prove that the algorithm is correct; then use its growth rate to determine
-whether it remains practical as the input limits increase.
+Big-O 只是設計限制之一。兩個 O(n) loop 可能具有不同的
+constant、memory access pattern 與 failure behavior。在本課程中，先
+證明 algorithm 正確，再利用 growth rate 判斷
+它是否在 input limit 提高時仍然實用。
 
-Suppose a program receives an array once and then answers many questions about
-contiguous ranges. Repeating a loop for every query costs time proportional to
-the length of every range. A prefix table stores the accumulated total before
-each boundary:
+假設程式只接收一次 array，接著回答許多關於
+contiguous range 的問題。每個 query 都重複執行 loop，所需時間會與
+各 range 的 length 成正比。prefix table 儲存每個
+boundary 之前的累積 total：
 
 ```text
 values:  [ 3, -1,  4,  2 ]
@@ -710,48 +710,48 @@ boundary:  0   1   2   3   4
 prefix:  [ 0,  3,  2,  6,  8 ]
 ```
 
-The invariant is:
+invariant 如下：
 
 ```text
 prefix[i] = values[0] + values[1] + ... + values[i - 1]
 ```
 
-The extra leading zero is deliberate. It makes `prefix` have `count + 1`
-elements and represents the empty prefix without a special case. The total of
-the half-open range `[left, right)` is therefore:
+開頭額外的零是刻意安排的。它讓 `prefix` 具有 `count + 1`
+個 element，並且不需 special case 就能表示 empty prefix。因此，
+half-open range `[left, right)` 的 total 是：
 
 ```text
 prefix[right] - prefix[left]
 ```
 
-For the table above, `[1, 4)` totals `8 - 3 = 5`. This matches C's usual loop
-boundary: start at `left` and continue while `i < right`.
+對上方 table 而言，`[1, 4)` 的 total 為 `8 - 3 = 5`。這符合 C 常用的 loop
+boundary：從 `left` 開始，只要 `i < right` 就繼續。
 
-#### Try it now [Core live] — subtract boundaries (4 minutes)
+#### 立即練習 [課堂核心] — 相減 boundary（4 分鐘）
 
-Using the displayed prefix table, calculate `[0, 2)`, `[2, 4)`, and `[4, 4)`.
-For each result, also list the original array elements included by the half-open
-range.
+使用所示 prefix table，計算 `[0, 2)`、`[2, 4)` 與 `[4, 4)`。
+對每個結果，也列出此 half-open
+range 包含的原始 array element。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Range | Included values | Boundary subtraction | Total |
+| Range | 包含的 value | Boundary 相減 | Total |
 |-------|-----------------|----------------------|-------|
 | `[0, 2)` | `3, -1` | `prefix[2] - prefix[0] = 2 - 0` | `2` |
 | `[2, 4)` | `4, 2` | `prefix[4] - prefix[2] = 8 - 2` | `6` |
-| `[4, 4)` | none | `prefix[4] - prefix[4] = 8 - 8` | `0` |
+| `[4, 4)` | 無 | `prefix[4] - prefix[4] = 8 - 8` | `0` |
 
-This is a trace rather than an executable program, so it has no standard
-output. Notice that the empty range needs no special-case formula.
+這是追蹤過程而非可執行程式，所以沒有 standard
+output。注意，empty range 不需要 special-case 公式。
 
 </details>
 
 ---
 
-### Build/query contracts before implementation
+### 實作之前先撰寫 build／query contract
 
-Design two interfaces rather than hiding precomputation inside `main`:
+設計兩個 interface，而不是將 precomputation 隱藏在 `main` 裡：
 
 ```c
 #include <stddef.h>
@@ -764,58 +764,58 @@ int query_total(const int64_t prefix[], size_t prefix_count, size_t left,
                 size_t right, int64_t* result);
 ```
 
-The first requires space for `count + 1` accumulated values. The second must
-validate `left <= right` and `right < prefix_count`. Both should state how
-arithmetic overflow is prevented or reported; using `int64_t` widens the common
-case but is not a mathematical proof that every possible input fits.
+第一個要求能容納 `count + 1` 個累積 value 的空間。第二個必須
+驗證 `left <= right` 與 `right < prefix_count`。兩者都應說明如何
+避免或回報 arithmetic overflow；使用 `int64_t` 能涵蓋更多常見
+情況，但不能從數學上證明所有可能的 input 都能容納。
 
-With `n` values and `q` queries, precomputation plus constant-time queries costs
-O(n + q), compared with O(nq) in the worst case when each query scans its
-range. The tradeoff is O(n) additional storage and the need to rebuild or
-update the table if an input value changes.
+對 `n` 個 value 與 `q` 個 query 而言，precomputation 搭配 constant-time query 的成本為
+O(n + q)，而每個 query 都掃描其 range 時，worst case 為
+O(nq)。代價是 O(n) 的額外 storage，以及在 input value 改變時，需要重建或
+更新 table。
 
-#### Try it now [Extension] — audit the two interfaces (3 minutes)
+#### 立即練習 [延伸] — 檢查兩個 interface（3 分鐘）
 
-For four input values, determine the minimum valid `prefix_capacity`. After a
-successful build, determine the `prefix_count` passed to `query_total` and the
-largest valid value of `right`. Explain what each function should do when its
-capacity or range check fails.
+對四個 input value，判定最小有效 `prefix_capacity`。成功
+build 後，判定 `prefix_count` 傳給 `query_total` 時的 value，以及
+`right` 的最大有效 value。說明每個 function 在
+capacity 或 range check 失敗時應如何處理。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-- Four input values require five prefix entries, so `prefix_capacity` must be
-  at least `5`.
-- The resulting `prefix_count` is `5`.
-- Because the range contract checks `right < prefix_count`, the largest valid
-  right boundary is `4`.
-- A failed build or query returns zero. A failed query must not publish a value
-  through `result`.
+- 四個 input value 需要五個 prefix entry，因此 `prefix_capacity` 必須
+  至少為 `5`。
+- 得到的 `prefix_count` 是 `5`。
+- 由於 range contract 檢查 `right < prefix_count`，最大的有效
+  right boundary 是 `4`。
+- 失敗的 build 或 query 回傳零。失敗的 query 不可將 value
+  透過 `result` 傳出。
 
-These declaration-only interfaces produce no run-time output. The prefix-table
-function bodies remain an exercise; the contracts above are the oracle for
-their implementation.
+這些只有 declaration 的 interface 不會產生 run-time output。prefix-table
+function body 留作練習；上方的 contract 是
+其實作的判定依據。
 
 </details>
 
 ---
 
-### Prefixes of derived contributions
+### 衍生 contribution 的 prefix
 
-The accumulated value need not be the original element. A program can first
-define a contribution—for example, `1` when a reading satisfies a condition and
-`0` otherwise—and then prefix those contributions to count qualifying elements
-in any range. Keep the transformation and range convention explicit; changing
-either changes the meaning of every query.
+累積的 value 不一定要是原始 element。程式可以先
+定義 contribution，例如 reading 滿足 condition 時為 `1`，
+否則為 `0`，再對這些 contribution 建立 prefix，以計算任何
+range 內符合條件的 element 數量。明確說明 transformation 與 range convention；改變
+其中任一項，都會改變每個 query 的意義。
 
-#### Try it now [Core live] — prefix a predicate (3 minutes)
+#### 立即練習 [課堂核心] — 為 predicate 建立 prefix（3 分鐘）
 
-For `{-2, 5, 0, 7}`, define each contribution as `1` when the value is positive
-and `0` otherwise. Write the boundary-indexed contribution prefix and use it to
-count positive values in `[1, 4)`.
+對 `{-2, 5, 0, 7}`，將每個 contribution 定義為：value 為正時是 `1`，
+否則是 `0`。寫出以 boundary 為 index 的 contribution prefix，並用它
+計算 `[1, 4)` 內正 value 的數量。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```text
 values:        [ -2, 5, 0, 7 ]
@@ -823,59 +823,59 @@ contribution:  [  0, 1, 0, 1 ]
 prefix:        [ 0, 0, 1, 1, 2 ]
 ```
 
-The query is `prefix[4] - prefix[1] = 2 - 0 = 2`. This hand trace has no
-standard output and deliberately does not reveal the exercise's C
-implementation.
+query 是 `prefix[4] - prefix[1] = 2 - 0 = 2`。這個手動追蹤過程沒有
+standard output，並刻意不公開練習中的 C
+實作。
 
 </details>
 
 ---
 
-### Try it now [Extension] — prefix-table checkpoint (4 minutes)
+### 立即練習 [延伸] — prefix-table 檢核（4 分鐘）
 
-For `values = {5, -2, 0, 7, -3}`, build the six boundary totals by hand. Answer
-`[0, 0)`, `[0, 3)`, `[2, 5)`, and `[4, 5)`. Then specify expected rejection for
-three invalid boundary pairs. Only after the table and expectations are fixed,
-write the two function bodies and compare their results with a direct loop.
+對 `values = {5, -2, 0, 7, -3}`，手動建立六個 boundary total。回答
+`[0, 0)`、`[0, 3)`、`[2, 5)` 與 `[4, 5)`。接著指定三組
+無效 boundary pair 預期會如何被拒絕。確定 table 與預期結果後，
+再撰寫兩個 function body，並將它們的結果與直接執行 loop 比較。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The boundary totals for the original values—not the positive-only
-contributions from the separate exercise—are:
+原始 value 的 boundary total 如下；這裡使用的是原始 value，
+而非另一個練習中只計正 value 的 contribution：
 
 ```text
 values:  [ 5, -2, 0, 7, -3 ]
 prefix:  [ 0,  5, 3, 3, 10, 7 ]
 ```
 
-| Range | Result |
+| Range | 結果 |
 |-------|--------|
 | `[0, 0)` | `0` |
 | `[0, 3)` | `3` |
 | `[2, 5)` | `4` |
 | `[4, 5)` | `-3` |
 
-Examples of invalid boundaries are `(3, 2)` because `left > right`, `(0, 6)`
-because `right >= prefix_count`, and `(6, 6)` because neither boundary belongs
-to `[0, prefix_count)`. The panel supplies expected results, not the two C
-function bodies. This is a hand trace and therefore has no standard output.
+無效 boundary 的例子包括 `(3, 2)`，因為 `left > right`；`(0, 6)`，
+因為 `right >= prefix_count`；以及 `(6, 6)`，因為兩個 boundary 都不屬於
+`[0, prefix_count)`。本區提供的是預期結果，而非兩個 C
+function body。這是手動追蹤過程，因此沒有 standard output。
 
 </details>
 
 ---
 
-### 6. Lower and upper boundaries in sorted data
+### 6. Sorted data 中的 lower 與 upper boundary
 
-When equal values form one contiguous block in an ascending sorted array, two
-boundary queries describe that block precisely:
+在 ascending sorted array 中，相等的 value 形成一個 contiguous block 時，兩個
+boundary query 可精確描述該 block：
 
-- **lower bound:** first position whose value is not less than the target;
-- **upper bound:** first position whose value is greater than the target.
+- **lower bound：** 第一個 value 不小於 target 的位置；
+- **upper bound：** 第一個 value 大於 target 的位置。
 
-Both return the past-the-end position `count` when no element satisfies the
-condition. If `lower` and `upper` are the two results, the sorted range is
-partitioned as:
+兩者都回傳 past-the-end 位置 `count`，只要沒有 element 滿足
+condition。若 `lower` 與 `upper` 是這兩個結果，sorted range 就會
+被分割為：
 
 ```text
 [0, lower)       values < target
@@ -883,7 +883,7 @@ partitioned as:
 [upper, count)   values > target
 ```
 
-For the target `-1`, the sample array below makes those positions concrete:
+對 target `-1`，下方範例 array 具體展示這些位置：
 
 ```text
 index:    0   1   2   3   4   5   6
@@ -892,12 +892,12 @@ value:   -3  -1  -1  -1   2   5   5
                          ^ upper = 4
 ```
 
-Therefore `lower == upper` means the target is absent, and `upper - lower` is
-the size of its equal block. The same boundaries also identify where a value
-could be inserted while preserving order.
+因此，`lower == upper` 表示 target 不存在，而 `upper - lower` 是
+其相等 block 的大小。同樣的 boundary 也指出在保持順序下，value
+可以插入的位置。
 
-Both queries share one interface shape, and these are the names the exercise
-starter uses:
+兩個 query 共用相同的 interface 形式，以下是練習
+starter 使用的名稱：
 
 ```c
 #include <stddef.h>
@@ -906,119 +906,119 @@ size_t lower_bound_int(const int values[], size_t size, int key);
 size_t upper_bound_int(const int values[], size_t size, int key);
 ```
 
-Each requires `values` to hold `size` readable elements in ascending order,
-leaves them unchanged, and returns a position in `[0, size]`. Returning `size`
-means no element satisfies the condition. The next section derives the single
-loop that implements both.
+兩者都要求 `values` 包含 `size` 個以 ascending order 排列的可讀 element，
+保持它們不變，並回傳 `[0, size]` 內的位置。回傳 `size`
+表示沒有 element 滿足 condition。下一節將推導用於
+實作兩者的單一 loop。
 
-#### Try it now [Core live] — identify an equal block (3 minutes)
+#### 立即練習 [課堂核心] — 辨識相等的 block（3 分鐘）
 
-For the displayed array, identify the lower bound, upper bound, and duplicate
-count for targets `-1` and `4`. Do not perform binary search yet; use only the
-three-region definition.
+對所示 array，找出 lower bound、upper bound 與重複
+數量，分別使用 target `-1` 與 `4`。目前先不要執行 binary search；只使用
+三區域的定義。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Target | Lower bound | Upper bound | Count |
+| Target | Lower bound | Upper bound | 數量 |
 |--------|-------------|-------------|-------|
 | `-1` | `1` | `4` | `3` |
 | `4` | `5` | `5` | `0` |
 
-For `4`, index `5` is both the first position whose value is at least `4` and
-the first position whose value is greater than `4`. Equal boundaries therefore
-describe an empty equal block. This hand classification has no run-time output.
+對 `4` 而言，index `5` 同時是第一個 value 至少為 `4` 的位置，
+也是第一個 value 大於 `4` 的位置。因此，相同的 boundary
+描述一個 empty equal block。這個手動分類沒有 run-time output。
 
 </details>
 
 ---
 
-### A monotone-predicate view of binary search
+### 以 monotone predicate 理解 binary search
 
-Do not memorize two nearly identical loops. For lower bound, search for the
-first index where `values[index] >= target` becomes true. For upper bound,
-replace the predicate with `values[index] > target`. In both cases, maintain a
-half-open interval `[low, high)` of elements not yet classified. The boundary
-is a position that remains somewhere from `low` through `high`, inclusive; it
-may equal `count` when no array element makes the predicate true.
+不要死記兩個幾乎相同的 loop。對 lower bound，尋找
+`values[index] >= target` 首次成為 true 的 index。對 upper bound，
+將 predicate 換成 `values[index] > target`。兩種情況都維持一個
+由尚未分類 element 組成的 half-open interval `[low, high)`。boundary
+是仍位於 `low` 到 `high` 之間的位置，包含兩端；若沒有
+array element 使 predicate 成為 true，它可以等於 `count`。
 
-A design trace must state:
+設計的追蹤過程必須說明：
 
-- everything before `low` is known to make the predicate false;
-- every real index in `[high, count)` is known to make it true; if no real
-  element is true, `count` is a virtual true boundary and is never accessed;
-- each comparison removes `mid` from the candidate interval or makes it the new
-  boundary, so the interval strictly shrinks;
-- the midpoint is formed as `low + (high - low) / 2`, avoiding addition
-  overflow from `(low + high) / 2`.
+- `low` 之前的所有 element 已知都使 predicate 為 false；
+- `[high, count)` 內每個實際 index 已知都使它為 true；若沒有實際
+  element 為 true，`count` 就是 virtual true boundary，且永遠不會被存取；
+- 每次比較都會從 candidate interval 排除 `mid`，或使它成為新的
+  boundary，所以 interval 嚴格縮小；
+- midpoint 以 `low + (high - low) / 2` 計算，避免
+  `(low + high) / 2` 中的 addition overflow。
 
-Write only the invariant and interval updates first. Test the trace on an empty
-array, one element, all-equal values, a target below every value, a target above
-every value, and duplicates at both ends. A conventional equality-returning
-binary search is insufficient because it may find any duplicate rather than a
-specified boundary.
+先只寫出 invariant 與 interval update。以 empty
+array、單一 element、全部相等的 value、低於所有 value 的 target、高於
+所有 value 的 target，以及兩端的 duplicate 測試追蹤過程。一般找到相等值就回傳的
+binary search 不足以完成此任務，因為它可能找到任意 duplicate，而非
+指定的 boundary。
 
-#### Try it now [Extension] — trace first true (4 minutes)
+#### 立即練習 [延伸] — 追蹤第一個 true（4 分鐘）
 
-Trace the lower-bound predicate `values[index] >= -1` on the displayed array.
-Record `(low, high, middle)` before each update, then repeat with the upper-bound
-predicate `values[index] > -1`.
+在所示 array 上追蹤 lower-bound predicate `values[index] >= -1`。
+每次 update 前記錄 `(low, high, middle)`，再以 upper-bound
+predicate `values[index] > -1` 重複一次。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Lower bound:
+Lower bound：
 
-| `low` | `high` | `middle` | Value | `value >= -1` | Update |
+| `low` | `high` | `middle` | Value | `value >= -1` | 更新 |
 |-------|--------|----------|-------|---------------|--------|
 | `0` | `7` | `3` | `-1` | true | `high = 3` |
 | `0` | `3` | `1` | `-1` | true | `high = 1` |
 | `0` | `1` | `0` | `-3` | false | `low = 1` |
 
-The interval is empty at `[1, 1)`, so the lower boundary is `1`.
+interval 在 `[1, 1)` 時為空，因此 lower boundary 是 `1`。
 
-Upper bound:
+Upper bound：
 
-| `low` | `high` | `middle` | Value | `value > -1` | Update |
+| `low` | `high` | `middle` | Value | `value > -1` | 更新 |
 |-------|--------|----------|-------|--------------|--------|
 | `0` | `7` | `3` | `-1` | false | `low = 4` |
 | `4` | `7` | `5` | `5` | true | `high = 5` |
 | `4` | `5` | `4` | `2` | true | `high = 4` |
 
-The interval is empty at `[4, 4)`, so the upper boundary is `4`. These are
-algorithm traces, not program output.
+interval 在 `[4, 4)` 時為空，因此 upper boundary 是 `4`。這些是
+algorithm 的追蹤過程，而非程式 output。
 
 </details>
 
 ---
 
-### Sorting is a precondition, not part of the search
+### Sorting 是 precondition，並非 search 的一部分
 
-Boundary search requires an ascending sorted range. The search function should
-state that precondition rather than silently sorting its input, because sorting
-would modify the order and change the operation's running time. For now, use
-data that is already sorted or the insertion-sort extension at the end of this
-note. Week 4 introduces C's generic `qsort` interface after function pointers
-and comparator contracts can be explained properly.
+Boundary search 要求 ascending sorted range。search function 應
+明確陳述這個 precondition，而不是默默對 input 進行 sorting，因為 sorting
+會修改順序並改變 operation 的 running time。目前請使用
+已完成 sorting 的 data，或本筆記末尾的 insertion-sort 延伸
+練習。第 4 週會介紹 C 的通用 `qsort` interface，時機是在 function pointer
+與 comparator contract 都能妥善說明之後。
 
-Sorting once and answering `q` boundary queries costs O(n log n + q log n).
-Scanning the unsorted array for each query costs O(nq), but preserves original
-order and needs no sorting. Choose from the complete workload and data contract,
-not from the query operation alone.
+Sorting 一次，再回答 `q` 個 boundary query，成本為 O(n log n + q log n)。
+每個 query 都掃描 unsorted array 的成本為 O(nq)，但能保留原始
+順序，也不需要 sorting。應根據完整 workload 與 data contract 選擇，
+而非只看 query operation 本身。
 
 ---
 
-### Try it now [Extension] — boundary-search checkpoint (4 minutes)
+### 立即練習 [延伸] — boundary-search 檢核（4 分鐘）
 
-For `{-3, -1, -1, -1, 2, 5, 5}`, fill a table of lower and upper positions for
-targets `-4`, `-1`, `0`, `5`, and `8`. For each comparison, record `[low, high)`
-and the truth value of the relevant predicate. Then write function contracts
-for the two searches without writing their bodies.
+對 `{-3, -1, -1, -1, 2, 5, 5}`，填寫 target
+`-4`、`-1`、`0`、`5` 與 `8` 的 lower 與 upper position table。每次比較時，記錄 `[low, high)`
+與相關 predicate 的 truth value。接著為兩種 search 撰寫 function contract，
+暫時不要撰寫其 body。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Target | Lower bound | Upper bound | Equal-block size |
+| Target | Lower bound | Upper bound | 相等 block 的 size |
 |--------|-------------|-------------|------------------|
 | `-4` | `0` | `0` | `0` |
 | `-1` | `1` | `4` | `3` |
@@ -1026,36 +1026,36 @@ for the two searches without writing their bodies.
 | `5` | `5` | `7` | `2` |
 | `8` | `7` | `7` | `0` |
 
-Both functions require an ascending sorted range of `count` readable elements,
-preserve that range, and return a position in `[0, count]`. The lower-bound
-result is the first value at least the target; the upper-bound result is the
-first value greater than the target. The table is expected trace output. Write
-both bodies in the exercise starter first; [the complete example](examples.c)
-contains worked implementations to compare against afterward.
+兩個 function 都要求包含 `count` 個可讀 element 的 ascending sorted range，
+保持該 range 不變，並回傳 `[0, count]` 內的位置。lower-bound
+結果是第一個 value 至少等於 target 的位置；upper-bound 結果是
+第一個 value 大於 target 的位置。table 是預期的追蹤結果。請先在
+練習 starter 中撰寫兩個 body；[完整範例](examples.c)
+包含示範實作，可在完成後用來比較。
 
 </details>
 
 ---
 
-## Hour 3 — String representation, bounded input, and parsing
+## 第 3 小時 — String 表示方式、有界 input 與 parsing
 
-> **Hour 3 route:** [Strings are character arrays with a sentinel](#7-strings-are-character-arrays-with-a-sentinel)
-> → [Capacity versus length](#capacity-versus-length)
-> → [Reading a line safely](#8-reading-a-line-safely)
-> → [Implement library ideas once](#implement-library-ideas-once)
-> → [Validate the line representation before processing it](#validate-the-line-representation-before-processing-it)
-> → [word-count studio](#try-it-now-core-live--hour-3-word-count-studio-5-minutes)
+> **第 3 小時路線：** [String 是帶有 sentinel 的 character array](#7-string-是帶有-sentinel-的-character-array)
+> → [Capacity 與 length](#capacity-與-length)
+> → [安全讀取一行](#8-安全讀取一行)
+> → [親手實作一次 library 觀念](#親手實作一次-library-觀念)
+> → [處理 line 前先驗證其表示方式](#處理-line-前先驗證其表示方式)
+> → [word-count 實作工坊](#立即練習-課堂核心--第-3-小時-word-count-實作工坊5-分鐘)
 
-### 7. Strings are character arrays with a sentinel
+### 7. String 是帶有 sentinel 的 character array
 
 ```c
 char language[] = "C17";
 ```
 
-The array contains four characters: `'C'`, `'1'`, `'7'`, and the terminating
-null character `'\0'`. Library functions find the end by scanning for this
-sentinel. If the terminator is missing, a string function may continue beyond
-the array.
+array 包含四個 character：`'C'`、`'1'`、`'7'`，以及作為結尾的
+null character `'\0'`。library function 會掃描此
+sentinel 來找到結尾。若缺少 terminator，string function 可能繼續讀取
+array 之外的位置。
 
 ```c
 #include <string.h>
@@ -1063,26 +1063,26 @@ the array.
 size_t length = strlen(language); /* 3, not 4 */
 ```
 
-`strlen` is linear time; it does not know the array capacity.
+`strlen` 是 linear time；它不知道 array capacity。
 
-#### Try it now [Core live] — count storage and text separately (2 minutes)
+#### 立即練習 [課堂核心] — 分別計算 storage 與文字（2 分鐘）
 
-Print both `sizeof(language)` and `strlen(language)`. Predict why the two
-numbers differ by one.
+印出 `sizeof(language)` 與 `strlen(language)`。預測為何這兩個
+數字相差一。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 printf("storage=%zu length=%zu\n", sizeof(language), strlen(language));
 ```
 
-The array owns four `char` objects, but the string length counts only the three
-characters before the first null character. This fragment belongs after the
-declaration of `language` in a program that includes `<stdio.h>` and
-`<string.h>`.
+array 擁有四個 `char` object，但 string length 只計算第一個 null character
+之前的三個 character。這段程式應放在
+`language` 的 declaration 之後，且程式須引入 `<stdio.h>` 與
+`<string.h>`。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 storage=4 length=3
@@ -1092,40 +1092,40 @@ storage=4 length=3
 
 ---
 
-### Capacity versus length
+### Capacity 與 length
 
 ```c
 char name[32] = "Ada";
 ```
 
-- Capacity: 32 characters of storage.
-- Current string length: 3 characters.
-- Available space for additional text: 28 characters, because one position is
-  reserved for `\0`.
+- Capacity：可容納 32 個 character 的 storage。
+- 目前的 string length：3 個 character。
+- 額外文字可用的空間：28 個 character，因為有一個位置
+  保留給 `\0`。
 
-Capacity and logical length are different properties in every sequence
-representation. Keeping them separate here prepares us to reason about dynamic
-arrays and other containers later without depending on any one language API.
+在每一種 sequence 表示方式中，capacity 與 logical length 都是不同的 property。
+在此保持兩者分開，能讓我們準備好推理後續的 dynamic
+array 與其他 container，而不依賴任何單一語言的 API。
 
-#### Try it now [Core live] — reserve the terminator (2 minutes)
+#### 立即練習 [課堂核心] — 預留 terminator（2 分鐘）
 
-Change the declaration to `char name[4] = "Ada";`. Determine its capacity,
-length, and remaining space for additional visible characters. Then predict
-whether appending one visible character would fit.
+將 declaration 改成 `char name[4] = "Ada";`。判定其 capacity、
+length，以及額外可見 character 的剩餘空間。接著預測
+它能否容納再 append 的一個可見 character。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The capacity is `4`, the current length is `3`, and the remaining visible-text
-capacity is `0`. The fourth element already stores `\0`, so another visible
-character would require at least a five-element destination.
+capacity 是 `4`，目前 length 是 `3`，可見文字的剩餘
+capacity 是 `0`。第四個 element 已經儲存 `\0`，所以再加入一個可見
+character，至少需要可容納五個 element 的 destination。
 
 ```c
 printf("capacity=%zu length=%zu available=%zu\n", sizeof(name), strlen(name),
        sizeof(name) - strlen(name) - 1);
 ```
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 capacity=4 length=3 available=0
@@ -1135,19 +1135,19 @@ capacity=4 length=3 available=0
 
 ---
 
-### 8. Reading a line safely
+### 8. 安全讀取一行
 
-Week 1 introduced numeric format contracts. For a C string, `%s` has two
-different but related roles:
+第 1 週介紹了 numeric format contract。對 C string，`%s` 有兩種
+不同但相關的用途：
 
-- `printf("%s", text)` reads characters starting at `text` and prints until
-  the first `\0`;
-- `scanf("%31s", word)` skips leading whitespace, reads at most 31 non-whitespace
-  characters, writes a terminating `\0`, and stops at whitespace.
+- `printf("%s", text)` 從 `text` 開始讀取 character，持續印出直到
+  第一個 `\0`；
+- `scanf("%31s", word)` 跳過開頭的 whitespace，最多讀取 31 個 non-whitespace
+  character，寫入結尾的 `\0`，並在 whitespace 處停止。
 
-The input field width must leave one array element for the terminator. It is a
-literal maximum in the format string, so a 32-element destination pairs with
-`%31s`:
+input field width 必須保留一個 array element 給 terminator。它是
+format string 中寫出的 literal maximum，因此可容納 32 個 element 的 destination 搭配
+`%31s`：
 
 ```c
 #include <stdio.h>
@@ -1162,30 +1162,30 @@ int main(void) {
 }
 ```
 
-#### Try it now [Core live] — distinguish a word from a line (3 minutes)
+#### 立即練習 [課堂核心] — 區分 word 與 line（3 分鐘）
 
-Run the program with the input `Ada Lovelace`. Predict what it prints and what
-input remains unread. Then explain why a width protects the destination but
-does not turn `%s` into a whole-line parser.
+以 input `Ada Lovelace` 執行程式。預測它會印出什麼，以及哪些
+input 尚未讀取。再說明為何 width 能保護 destination，卻
+無法將 `%s` 變成 whole-line parser。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-**Expected standard output:**
+**預期 standard output：**
 
 ```text
 word=Ada
 ```
 
-The separating space ends the conversion, and `Lovelace` remains in `stdin` for
-a later input operation. A token longer than 31 characters is also only partly
-consumed. The width prevents this call from writing beyond `word`; the program
-must still decide what to do with any remaining input.
+分隔的 space 會結束 conversion，而 `Lovelace` 留在 `stdin` 中，等待
+後續 input operation。超過 31 個 character 的 token 也只會部分
+被讀取。width 能防止這次 call 寫到 `word` 之外；程式
+仍須決定如何處理剩餘 input。
 
 </details>
 
-For a whole line, prefer a bounded line read and then parse. This first version
-assumes the input contract guarantees that the line fits in the array:
+對完整的一行，優先採用有界 line read，再進行 parsing。這個初步版本
+假設 input contract 保證整行能放進 array：
 
 ```c
 #include <stdio.h>
@@ -1203,49 +1203,49 @@ int main(void) {
 }
 ```
 
-`NULL` is C's conventional null-pointer constant: it means that a pointer does
-not designate an object. Here, `fgets` returns `NULL` when it cannot read a
-line. Week 4 develops null pointers together with pointer validity and dynamic
-memory; for now, compare the returned pointer with `NULL` before using it.
+`NULL` 是 C 慣用的 null-pointer constant：它表示 pointer 沒有
+指定 object。此處，`fgets` 回傳 `NULL`，表示它無法讀取
+一行。第 4 週會將 null pointer、pointer validity 與 dynamic
+memory 一併說明；目前請在使用回傳的 pointer 之前，先將它與 `NULL` 比較。
 
-On success, `fgets` stores a terminating `\0`, so `strcspn` can safely search
-this array for a newline. If one is present, replacing it with `\0` removes the
-line ending. If the input is longer than the buffer, however, `fgets` reads only
-a prefix. The validation section below shows how to distinguish a complete line
-from a truncated one.
+成功時，`fgets` 會儲存結尾的 `\0`，因此 `strcspn` 可以安全地在
+此 array 中尋找 newline。若存在 newline，將它換成 `\0` 就能移除
+行尾。不過，若 input 超過 buffer 長度，`fgets` 只會讀取
+一個 prefix。下方的驗證章節會示範如何區分 complete line
+與遭到 truncation 的 line。
 
-#### Try it now [Core live] — observe bounded line input (3 minutes)
+#### 立即練習 [課堂核心] — 觀察有界 line input（3 分鐘）
 
-Run the program once with `Ada Lovelace` followed by Enter and once with an
-empty line. Predict the character counts and output before running it.
+先以 `Ada Lovelace` 加上 Enter 執行一次程式，再以
+empty line 執行一次。執行前先預測 character count 與 output。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-For `Ada Lovelace` followed by a newline:
+對 `Ada Lovelace` 後接 newline：
 
 ```text
 You entered 12 characters: "Ada Lovelace"
 ```
 
-For an empty line:
+對 empty line：
 
 ```text
 You entered 0 characters: ""
 ```
 
-The newline is read into the array and then replaced, so it is not part of
-either reported length. If immediate end-of-file occurs, the program produces
-no standard output and returns a nonzero status.
+newline 會被讀入 array 後再被替換，所以不包含在
+任一回報的 length 中。若立刻遇到 end-of-file，程式不會產生
+standard output，並回傳 nonzero status。
 
 </details>
 
 ---
 
-### Implement library ideas once
+### 親手實作一次 library 觀念
 
-Before relying on `<string.h>`, implement two small functions to expose the
-sentinel and capacity contracts:
+在依賴 `<string.h>` 之前，先實作兩個小型 function，呈現
+sentinel 與 capacity contract：
 
 ```c
 #include <stddef.h>
@@ -1271,26 +1271,26 @@ int string_copy(char destination[], size_t capacity, const char source[]) {
 }
 ```
 
-The copy loop uses `<= length` deliberately. A successful string copy must copy
-the terminator as well as visible characters. This function follows an
-**all-or-nothing** contract: if the complete source does not fit, it reports
-failure and leaves the destination unchanged. The exercise later in this week
-deliberately explores a different, truncating contract so that the two policies
-can be compared. Discuss why calling either function on a nonterminated array
-violates its precondition.
+copy loop 刻意使用 `<= length`。成功的 string copy 必須同時複製
+terminator 與可見 character。這個 function 遵循
+**all-or-nothing** contract：若無法容納完整 source，就回報
+failure 並保持 destination 不變。本週後續的練習
+刻意探討另一種會進行 truncation 的 contract，以便比較這兩種 policy。
+討論為何對沒有 terminator 的 array 呼叫任一 function，
+會違反其 precondition。
 
-Both functions require valid arrays and a null-terminated `source`. The copy
-contract does not support partially overlapping source and destination ranges,
-because a write could change a source character that has not yet been read.
+兩個 function 都要求有效的 array，以及 null-terminated `source`。copy
+contract 不支援部分重疊的 source 與 destination range，
+因為 write 可能改變尚未讀取的 source character。
 
-#### Try it now [Core live] — test exact fit and rejection (4 minutes)
+#### 立即練習 [課堂核心] — 測試恰好容納與拒絕情況（4 分鐘）
 
-Use a four-element destination. First copy `"C17"`; then try to copy `"C17!"`
-into the same destination. Predict each status and the destination text after
-each call.
+使用可容納四個 element 的 destination。先 copy `"C17"`，再嘗試將 `"C17!"`
+copy 到相同 destination。預測每次 call 的 status，以及 call 後
+destination 的文字。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 int main(void) {
@@ -1304,11 +1304,11 @@ int main(void) {
 }
 ```
 
-This fragment requires `<stdio.h>` and the two definitions above. `"C17"`
-needs exactly four array elements including `\0`. The second source needs five,
-so the all-or-nothing check fails before changing the destination.
+這段程式需要 `<stdio.h>` 與上方的兩個 definition。`"C17"`
+包含 `\0` 後，剛好需要四個 array element。第二個 source 需要五個，
+所以 all-or-nothing check 會在改變 destination 之前失敗。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 status=1 text=C17
@@ -1319,25 +1319,25 @@ status=0 text=C17
 
 ---
 
-### Validate the line representation before processing it
+### 處理 line 前先驗證其表示方式
 
-A successful `fgets` call does not guarantee that the whole logical line fit in
-the array. Search for `\n`. If it is present, replace it with `\0`; if it is
-absent and the program has not reached end-of-file, the input line was longer
-than the buffer and the rest must be rejected or discarded deliberately.
+成功的 `fgets` call 不保證整個 logical line 都能放進
+array。尋找 `\n`。若存在，就換成 `\0`；若
+不存在，且程式尚未到達 end-of-file，就表示 input line 超過
+buffer，必須明確選擇拒絕或丟棄剩餘部分。
 
-This validation order illustrates a reusable principle:
+這個驗證順序示範一項可重複運用的原則：
 
-1. establish where the valid data ends;
-2. establish that its representation is complete;
-3. only then interpret its contents.
+1. 確認有效 data 在哪裡結束；
+2. 確認其表示方式完整；
+3. 完成後才解讀其內容。
 
-The following helper handles the boundary case in which the array fills just
-before a newline. It assumes that `fgets` has already succeeded. If no newline
-is stored, it reads one more character: a newline or true end-of-file means the
-line fit exactly, while another character proves that the line was truncated.
-In the truncated case it discards the rest of that logical line so the next
-read begins at a clean boundary.
+下列 helper 處理 array 剛好在 newline
+之前填滿的 boundary case。它假設 `fgets` 已成功。若未儲存 newline，
+它會再讀取一個 character：newline 或真正的 end-of-file 表示
+line 恰好能容納，其他 character 則證明 line 已遭到 truncation。
+遇到 truncation 時，它會丟棄該 logical line 的剩餘部分，讓下一次
+read 從乾淨的 boundary 開始。
 
 ```c
 #include <stdio.h>
@@ -1365,46 +1365,46 @@ int finish_bounded_line(char line[]) {
 }
 ```
 
-#### Try it now [Extension] — distinguish exact fit from truncation (3 minutes)
+#### 立即練習 [延伸] — 區分恰好容納與 truncation（3 分鐘）
 
-With `char line[8]`, trace `fgets` followed by `finish_bounded_line` for the
-inputs `Ada\n`, `1234567\n`, and `12345678\n`. Record the returned status and
-the text stored in `line`.
+使用 `char line[8]`，追蹤 `fgets` 後接 `finish_bounded_line`，分別傳入
+input `Ada\n`、`1234567\n` 與 `12345678\n`。記錄回傳的 status 與
+儲存在 `line` 中的文字。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Input | Text initially stored by `fgets` | Helper status | Meaning |
+| Input | `fgets` 最初儲存的文字 | Helper status | 意義 |
 |-------|-----------------------------------|---------------|---------|
-| `Ada\n` | `"Ada\n"` | `1` | Newline was stored and replaced with `\0` |
-| `1234567\n` | `"1234567"` | `1` | The helper consumes the following newline; seven visible characters fit exactly |
-| `12345678\n` | `"1234567"` | `0` | The following `8` proves truncation; the helper discards through the newline |
+| `Ada\n` | `"Ada\n"` | `1` | Newline 已儲存，並被換成 `\0` |
+| `1234567\n` | `"1234567"` | `1` | helper 讀取後續 newline；七個可見 character 恰好能容納 |
+| `12345678\n` | `"1234567"` | `0` | 後續的 `8` 證明已發生 truncation；helper 會一路丟棄到 newline |
 
-The helper itself produces no standard output. A caller must use the stored line
-only when the returned status is `1`.
+helper 本身不會產生 standard output。caller 只能在回傳 status
+為 `1` 時使用儲存的 line。
 
 </details>
 
-Converting a substring into a number safely requires deciding both where the
-numeric text ends and whether its value is representable. Week 7 develops one
-explicit solution inside a lexer: it accumulates digits one at a time, checks
-each step against the representable range before multiplying, and, after a
-successful token, leaves the scan position on the first character that is not
-part of the number. Until then, read numeric input with the Week 1 `scanf`
-contracts under their stated representability assumptions.
+安全地將 substring 轉換成 number，必須同時判定
+numeric text 的結尾，以及其 value 是否可表示。第 7 週會在
+lexer 中建立一個明確的解法：每次累積一個 digit，在 multiplication 前檢查
+每一步是否位於可表示的範圍內，並在成功讀取
+token 後，讓 scan position 停在第一個不屬於
+number 的 character。在此之前，請遵循第 1 週 `scanf`
+contract 指定的可表示性假設來讀取 numeric input。
 
 ---
 
-### Try it now [Core live] — Hour 3 word-count studio (5 minutes)
+### 立即練習 [課堂核心] — 第 3 小時 word-count 實作工坊（5 分鐘）
 
-Write `count_words` for a null-terminated character array. A word is one or more
-non-whitespace characters, and any run of whitespace separates words. Trace a
-Boolean state such as `inside_word` across an empty string, leading/trailing
-spaces, and repeated separators. The important technique is recognizing a
-transition from “outside” to “inside,” not memorizing a library function.
+為 null-terminated character array 撰寫 `count_words`。word 由一個或多個
+non-whitespace character 組成，任何連續 whitespace 都會分隔 word。對
+例如 `inside_word` 的 Boolean state 進行追蹤，涵蓋 empty string、開頭／結尾的
+space，以及重複 separator。重要的技巧是辨識
+從「外部」到「內部」的 transition，而非記憶 library function。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 #include <ctype.h>
@@ -1434,11 +1434,11 @@ int main(void) {
 }
 ```
 
-`count` changes only on an outside-to-inside transition. The cast gives
-`isspace` a value in its required `unsigned char` domain, avoiding undefined
-behavior for a negative plain `char` value.
+`count` 只在 outside-to-inside transition 時改變。cast 會提供
+`isspace` 一個位於其要求的 `unsigned char` domain 內的 value，避免 undefined
+behavior 因負的 plain `char` value 而發生。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 empty=0
@@ -1449,39 +1449,39 @@ words=4
 
 ---
 
-## Check yourself
+## 自我檢核
 
-1. Why does `sizeof(parameter) / sizeof(parameter[0])` fail in a function?
-2. How many bytes are required to store the string `"tree"` as a `char` array?
-3. Why does a prefix table for `count` values contain `count + 1` entries?
-4. Express the inclusive mathematical range `left` through `right` as a C-style
-   half-open range, checking for overflow in the boundary conversion.
-5. State the three sorted regions defined by lower and upper bounds.
-6. Why can ordinary binary search return the wrong position for duplicates?
-7. Design a function to reverse an array. What must its contract include?
-8. Find the off-by-one error in `for (i = 0; i <= count; ++i)`.
-9. What should a string-building function know besides the current length?
-
----
-
-## Summary
-
-- Prototypes make function contracts available to the compiler.
-- Arguments are passed by value; mutation requires explicit indirection.
-- C arrays are contiguous and have no run-time length metadata.
-- Prefix precomputation turns repeated range totals into boundary subtraction.
-- Lower and upper bounds locate the edges of an equal block in sorted data.
-- A C string is an array convention: characters followed by `\0`.
-- Pair every array with its length and every output buffer with its capacity.
+1. 為何 `sizeof(parameter) / sizeof(parameter[0])` 在 function 中會失敗？
+2. 將 string `"tree"` 儲存為 `char` array，需要多少 byte？
+3. 為何 `count` 個 value 的 prefix table 包含 `count + 1` 個 entry？
+4. 將數學上包含兩端的範圍 `left` 到 `right` 表達為 C 風格的
+   half-open range，並檢查 boundary conversion 的 overflow。
+5. 陳述 lower 與 upper bound 定義的三個 sorted region。
+6. 為何一般 binary search 對 duplicate 可能回傳錯誤位置？
+7. 設計一個 reverse array 的 function。其 contract 必須包含什麼？
+8. 找出 `for (i = 0; i <= count; ++i)` 中的 off-by-one error。
+9. string-building function 除了目前 length，還應知道什麼？
 
 ---
 
-## Optional enrichment and lab extensions
+## 重點整理
 
-The following topics are useful applications of the same representation and
-boundary rules, but they are not part of the three-hour lecture core.
+- Prototype 讓 compiler 能取得 function contract。
+- Argument 以 value 傳遞；mutation 需要明確的 indirection。
+- C array 是 contiguous，且沒有 run-time length metadata。
+- Prefix precomputation 將重複的 range total 計算轉為 boundary 相減。
+- Lower 與 upper bound 找出 sorted data 中相等 block 的邊界。
+- C string 是一種 array convention：character 後接 `\0`。
+- 每個 array 都搭配其 length，每個 output buffer 都搭配其 capacity。
 
-### Two-dimensional arrays and row-major layout
+---
+
+## 選讀補充與 lab 延伸
+
+下列主題是相同表示方式與
+boundary 規則的實用應用，但不屬於三小時課堂的核心內容。
+
+### Two-dimensional array 與 row-major layout
 
 ```c
 #define COLUMN_COUNT 4
@@ -1489,8 +1489,8 @@ boundary rules, but they are not part of the three-hour lecture core.
 int matrix[3][COLUMN_COUNT] = {0};
 ```
 
-Elements are stored row by row. When passing this array, the compiler must know
-the column stride:
+element 逐 row 儲存。傳遞此 array 時，compiler 必須知道
+column stride：
 
 ```c
 int sum_matrix(size_t rows, const int matrix[][COLUMN_COUNT]) {
@@ -1504,27 +1504,27 @@ int sum_matrix(size_t rows, const int matrix[][COLUMN_COUNT]) {
 }
 ```
 
-This portable fixed-column form makes the row stride part of the function type.
-It requires a valid matrix whenever `rows > 0` and a mathematical sum
-representable as `int`. A function that accepts different column counts needs a
-different representation or, on implementations that support them, an
-explicitly labeled variable-length-array interface.
+這種可攜的 fixed-column 形式，讓 row stride 成為 function type 的一部分。
+只要 `rows > 0`，就要求有效的 matrix，且數學上的 sum
+必須能以 `int` 表示。接受不同 column count 的 function，需要
+不同的表示方式，或在支援的 implementation 上使用
+明確標示的 variable-length-array interface。
 
-The conceptual byte offset of `matrix[r][c]` is
-`(r * COLUMN_COUNT + c) * sizeof(int)`. Draw a `2 x 4` matrix as eight
-consecutive cells and explain why the column count is part of the interface
-contract.
+`matrix[r][c]` 在概念上的 byte offset 是
+`(r * COLUMN_COUNT + c) * sizeof(int)`。將 `2 x 4` matrix 畫成八個
+連續 cell，並說明為何 column count 是 interface
+contract 的一部分。
 
-#### Try it now [Extension] — flatten a matrix index (3 minutes)
+#### 立即練習 [延伸] — 將 matrix index 展平（3 分鐘）
 
-Initialize a `2 x 4` matrix with the values `1` through `8`. Calculate the
-linear element offset of `matrix[1][2]`, then call `sum_matrix` for both rows.
+初始化 `2 x 4` matrix，使用 `1` 到 `8` 的 value。計算
+`matrix[1][2]` 的 linear element offset，再對兩個 row 呼叫 `sum_matrix`。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The element offset is `1 * 4 + 2 = 6`, so `matrix[1][2]` is the seventh stored
-element and contains `7`.
+element offset 是 `1 * 4 + 2 = 6`，所以 `matrix[1][2]` 是第七個儲存的
+element，內容為 `7`。
 
 ```c
 int main(void) {
@@ -1534,9 +1534,9 @@ int main(void) {
 }
 ```
 
-This fragment requires `<stdio.h>` and the definition above.
+這段程式需要 `<stdio.h>` 與上方的 definition。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 value=7 sum=36
@@ -1546,7 +1546,7 @@ value=7 sum=36
 
 ---
 
-### Implementing a simple sort
+### 實作簡單的 sort
 
 ```c
 #include <stddef.h>
@@ -1564,17 +1564,17 @@ void insertion_sort(int values[], size_t count) {
 }
 ```
 
-Before iteration `i`, `[0, i)` is sorted and contains the original prefix's
-values. Trace `{4, 2, 2, 1}` and identify what makes equal elements stable.
+在 iteration `i` 之前，`[0, i)` 已完成 sorting，且包含原始 prefix 的
+value。追蹤 `{4, 2, 2, 1}`，並找出什麼讓相等 element 保持 stable。
 
-#### Try it now [Extension] — trace stable insertion (4 minutes)
+#### 立即練習 [延伸] — 追蹤 stable insertion（4 分鐘）
 
-Run the function on `{4, 2, 2, 1}` and print the result. During the trace,
-distinguish the first `2` from the second even though their stored integer
-values are equal. Which comparison preserves their relative order?
+對 `{4, 2, 2, 1}` 執行 function，並印出結果。在追蹤過程中，
+仍要區分第一個 `2` 與第二個，即使儲存的 integer
+value 相等。哪個比較能保留它們的 relative order？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 int main(void) {
@@ -1591,22 +1591,22 @@ int main(void) {
 }
 ```
 
-This fragment requires `<stdio.h>` and the function above.
+這段程式需要 `<stdio.h>` 與上方的 function。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 1 2 2 4
 ```
 
-The loop shifts only while `values[position - 1] > current`. Equal values are
-not shifted past one another, so their original relative order is preserved.
+loop 只在 `values[position - 1] > current` 時進行 shift。相等的 value
+不會彼此越過，所以它們的原始 relative order 會被保留。
 
 </details>
 
 ---
 
-## References and source materials
+## 參考資料與來源教材
 
 - [Functions](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/function/function.md>)
 - [Arrays](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/array/array.md>)

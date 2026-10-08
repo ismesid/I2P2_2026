@@ -1,49 +1,49 @@
-# Week 3 Lab — Midterm Scaffold Build and Code Map
+# 第 3 週 Lab — Midterm Scaffold 建置與 Code Map
 
-## Outcomes
+## 學習成果
 
-By the end of this lab, students can build the supplied C project, reproduce a
-baseline run, locate each compiler stage, and state the contracts of incomplete
-functions without implementing them.
+完成本次 lab 後，學生能建置提供的 C project、重現
+baseline 執行、找出各個 compiler stage，並說明未完成
+functions 的 contracts，而不實作它們。
 
-## Part A — AI-free readiness
+## Part A — 不使用 AI 的準備練習
 
-Given a two-file C program and header, fix one declaration/definition mismatch
-and one link error. Record whether each failure belongs to preprocessing,
-compilation, or linking.
+針對提供的雙檔案 C 程式及 header，修正一項 declaration/definition mismatch
+與一項 link error。記錄各個錯誤屬於 preprocessing、
+compilation，還是 linking。
 
-## Part B — Reproduce the baseline
+## Part B — 重現 baseline
 
-1. Obtain the published midterm scaffold and record its revision.
-2. Build with the course C standard and warning flags.
-3. Run every public testcase without modifying source.
-4. Record exact commands, compiler version, expected behavior, and observed
-   behavior. A failing/incomplete baseline is acceptable when documented.
+1. 取得已公布的 midterm scaffold，並記錄其 revision。
+2. 使用課程指定的 C standard 與 warning flags 建置。
+3. 在不修改 source 的情況下，執行每個 public testcase。
+4. 記錄完整 commands、compiler version、預期行為，以及觀察到的
+   行為。只要清楚記錄，失敗或尚未完成的 baseline 也可以接受。
 
-## Part C — Pipeline and TODO map
+## Part C — Pipeline 與 TODO map
 
-Trace one expression through:
+追蹤一個 expression 經過以下流程：
 
 ```text
 input → tokens/list → parser → AST → semantic check → instructions → cleanup
 ```
 
-For every stage, record its input, output, failure signal, allocation behavior,
-and caller. For every TODO, write a precondition and postcondition. Do not write
-the implementation in this milestone.
+針對每個 stage，記錄其 input、output、failure signal、allocation behavior，
+以及 caller。針對每個 TODO，寫出 precondition 與 postcondition。在這個 milestone 中，
+先不要撰寫實作。
 
-## Part D — AI-assisted code reading
+## Part D — AI 輔助程式碼閱讀
 
-Ask an AI tool to explain one function using only the relevant declaration,
-definition, and call site. Before asking, predict the function's contract.
-Verify the response against an executed trace and record one unsupported or
-incorrect assumption.
+請 AI 工具僅根據相關的 declaration、
+definition 與 call site 解釋一個 function。提問前，先預測該 function 的 contract。
+對照實際執行的 trace 驗證回覆，並記錄一項缺乏依據或
+錯誤的假設。
 
-## Deliverable
+## 繳交內容
 
-- reproducible build record;
-- one-page pipeline/TODO map;
-- baseline public-test table;
-- first entry in `AI_USAGE.md`.
+- 可重現的 build 記錄；
+- 一頁的 pipeline/TODO map；
+- baseline public-test 表；
+- `AI_USAGE.md` 中的第一筆記錄。
 
-Use the templates in [`project_templates/`](../../project_templates/).
+使用 [`project_templates/`](../../project_templates/) 中的範本。

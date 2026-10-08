@@ -1,129 +1,129 @@
-# Week 1 Lecture Notes — From Python to C
+# 第 1 週課堂講義 — 從 Python 到 C
 
-> September 8, 2026 · C17 · Source lineage: previous C introduction,
-> formatted-I/O, operators, and looping notes plus the instructor-provided
-> *From C to Assembly* handout
+> 2026 年 9 月 8 日 · C17 · 來源沿革：先前的 C 入門、
+> formatted-I/O、operators 與 looping 講義，以及教師提供的
+> *From C to Assembly* 講義
 
-> Python bridge: [Python Contrast Companion for Week 1](week01_python_companion.md)
-
----
-
-## Student route
-
-- **Core:** follow one program from source to executable, classify compile/link/
-  run-time failures, then write typed expressions, formatted I/O, branches, and
-  loops in C.
-- **Practice:** complete the [Week 1 exercise](lecture_exercises/week01_ex.md)
-  before comparing with [the complete example](examples.c).
-- **First-reading limit:** in the translation section, remember the pipeline and
-  diagnostic categories. Assembly sections are evidence for that model, not a
-  requirement to memorize instructions.
-- **Python bridge:** consult the companion only when a C behavior is hard to
-  connect to prior Python knowledge.
+> Python 銜接：[第 1 週 Python 對照補充教材](week01_python_companion.md)
 
 ---
 
-## Learning objectives
+## 學習路線
 
-By the end of this lecture, you should be able to:
-
-1. Describe preprocessing, compilation, assembly, linking, and execution, and
-   inspect the generated assembly as evidence of translation.
-2. Translate a small Python program into typed C.
-3. Use formatted input/output and C control flow safely.
-4. Distinguish a compile-time error, a link-time error, and a run-time fault.
-5. Compile with warnings and treat diagnostics as useful evidence.
+- **核心：**追蹤一個程式從 source 到 executable 的過程，區分 compile/link/
+  run-time failures，再撰寫 C 的 typed expressions、formatted I/O、branches 與
+  loops。
+- **練習：**完成[第 1 週練習](lecture_exercises/week01_ex.md)，
+  再與[完整範例](examples.c)比較。
+- **初讀範圍：**閱讀轉換章節時，記住 pipeline 與
+  diagnostic 類別。Assembly 章節提供該模型的證據，並非
+  要求背誦 instructions。
+- **Python 銜接：**只有當 C 的行為難以
+  與既有 Python 知識連結時，才查閱補充教材。
 
 ---
 
-## Three-hour plan
+## 學習目標
 
-| Hour | Main question | In-class production |
+完成本次課程後，你應該能夠：
+
+1. 描述 preprocessing、compilation、assembly、linking 與 execution，並
+   檢視產生的 assembly，作為轉換過程的證據。
+2. 將小型 Python 程式轉換為 typed C。
+3. 安全地使用 formatted input/output 與 C control flow。
+4. 區分 compile-time error、link-time error 與 run-time fault。
+5. 啟用 warnings 編譯，並將 diagnostics 視為有用的證據。
+
+---
+
+## 三小時課程規劃
+
+| 時段 | 核心問題 | 課堂成果 |
 |------|---------------|---------------------|
-| 1 | How does typed C become an executable? | Compile, inspect, deliberately break, and repair a small program |
-| 2 | How are Python-familiar values represented and formatted? | Type/conversion worksheet and robust input fragment |
-| 3 | How do we translate control flow without inheriting C-specific bugs? | Complete and test a judge-style classification program |
+| 1 | typed C 如何成為 executable？ | 編譯、檢視、刻意破壞並修復一個小型程式 |
+| 2 | 熟悉的 Python values 如何表示與格式化？ | Type/conversion 學習單與穩健的 input 片段 |
+| 3 | 如何轉換 control flow，同時避免 C 特有的 bugs？ | 完成並測試 judge-style 分類程式 |
 
-Each hour interleaves about 35–45 minutes of explanation and live coding with
-15–18 minutes of core practice. The remaining time is a buffer for discussion,
-transitions, and a short break; optional extensions can use that buffer when
-the class is ready.
+每小時穿插約 35–45 分鐘的講解與現場撰寫程式，以及
+15–18 分鐘的核心練習。剩餘時間供討論、
+銜接與短暫休息；當全班準備好時，也可利用這段緩衝時間進行
+選做的延伸練習。
 
-### Inline practice routine
+### 隨堂練習流程
 
-Each **Try it now** stop is a one-to-four-minute exercise unless a longer time
-is stated. Work in a small scratch source file and follow the same cycle:
+除非另有註明較長時間，每個**立即練習**都是一至四分鐘的練習。
+在小型暫存 source file 中操作，並遵循相同流程：
 
-1. predict the result or diagnostic before running a command;
-2. make the requested change yourself;
-3. compile with `-std=c17 -Wall -Wextra -Wpedantic`;
-4. run at least the stated tests; and
-5. explain the evidence to a partner in one sentence.
+1. 執行 command 前，先預測結果或 diagnostic；
+2. 自己完成指定修改；
+3. 使用 `-std=c17 -Wall -Wextra -Wpedantic` 編譯；
+4. 至少執行指定的測試；以及
+5. 用一句話向同伴說明證據。
 
-The exercises are deliberately small. Their purpose is immediate retrieval and
-feedback, not copying a complete solution from the note. Only the question is
-visible initially; expand **Reveal solution** after making and testing your own
-attempt. Each solution panel identifies the expected standard output, a
-representative diagnostic, or the reason that the example has no runtime
-output.
+這些練習刻意保持小規模，目的是立即回想知識與
+獲得回饋，而不是從講義複製完整解答。起初只會
+顯示題目；自行嘗試並測試後，再開啟**展開解答**。
+每個解答區塊都會指出預期的 standard output、
+具代表性的 diagnostic，或說明範例為何沒有 runtime
+output。
 
-- **Core live:** part of the planned in-class path.
-- **Extension:** remains beside the example for additional practice, but may be
-  completed during a break, in the lab, or after class if time is short.
+- **課堂核心：**屬於規劃中的課堂學習路線。
+- **延伸：**保留在範例旁供額外練習；若時間不足，可以
+  在休息時、lab 中或課後完成。
 
-The core-live exercises total about 15 minutes in Hour 1, 18 minutes in Hour 2,
-and 16 minutes in Hour 3. This leaves time for transitions, questions, and a
-short break without removing the immediate practice opportunities.
+課堂核心練習在第 1 小時約需 15 分鐘、第 2 小時約需 18 分鐘，
+第 3 小時約需 16 分鐘。這樣可保留銜接、提問與
+短暫休息的時間，同時維持立即練習的機會。
 
 ---
 
-## Hour 1 — Program translation and the C execution model
+## 第 1 小時 — 程式轉換與 C execution model
 
-> **Hour 1 route:** [machine model](#1-same-algorithms-different-machine-model)
-> → [translation pipeline](#2-the-translation-pipeline)
-> → [live diagnostic build](#hour-1-live-build-classify-the-diagnostic)
-> → [assembly as evidence](#assembly-is-an-observation-window)
-> → [first complete program](#3-first-program)
+> **第 1 小時路線：**[machine model](#1-相同-algorithms不同-machine-model)
+> → [轉換 pipeline](#2-轉換-pipeline)
+> → [現場 diagnostic build](#第-1-小時現場-build分類-diagnostic)
+> → [以 assembly 為證據](#assembly-是觀察視窗)
+> → [第一個完整程式](#3-第一個程式)
 
-### 1. Same algorithms, different machine model
+### 1. 相同 algorithms，不同 machine model
 
-You already know sequencing, selection, iteration, functions, and values. C asks
-you to make more of the representation explicit.
+你已經熟悉 sequencing、selection、iteration、functions 與 values。C 要求
+你更明確地表達 representation。
 
 | Python | C |
 |--------|---|
-| A name is bound to an object | A variable has a declared type and storage |
-| Integers grow as needed | Integer types have fixed ranges |
-| Lists resize dynamically | Arrays normally have fixed size |
-| Exceptions report many errors | Some mistakes produce undefined behavior |
-| The interpreter executes a program | A compiler and linker build an executable |
+| 名稱綁定到 object | variable 具有宣告的 type 與 storage |
+| Integers 依需要擴大 | Integer types 具有固定的 ranges |
+| Lists 可動態調整大小 | Arrays 通常具有固定大小 |
+| Exceptions 回報許多錯誤 | 某些錯誤會造成 undefined behavior |
+| interpreter 執行程式 | compiler 與 linker 建立 executable |
 
-The important question changes from only “what value does this expression
-produce?” to “what value, of what type, stored where, for how long?”
+核心問題從單純的「這個 expression 產生什麼 value？」
+變成「產生什麼 value、具有什麼 type、存在哪裡、存放多久？」
 
 ---
 
-### 2. The translation pipeline
+### 2. 轉換 pipeline
 
-For a source file named `hello.c`:
+對於名為 `hello.c` 的 source file：
 
 ```sh
 cc -std=c17 -Wall -Wextra -Wpedantic -g hello.c -o hello
 ./hello
 ```
 
-Conceptually, the build performs four translation stages before execution:
+概念上，build 會在 execution 前進行四個轉換階段：
 
-1. **Preprocess:** expand directives such as `#include` and `#define`.
-2. **Compile:** check C and translate it to target assembly.
-3. **Assemble:** encode assembly instructions and data into an object file.
-4. **Link:** combine object files and libraries into one executable.
+1. **Preprocess：**展開 `#include` 與 `#define` 等 directives。
+2. **Compile：**檢查 C，並轉換為目標 assembly。
+3. **Assemble：**將 assembly instructions 與 data 編碼成 object file。
+4. **Link：**將 object files 與 libraries 合併為一個 executable。
 
-At run time, the operating system loader maps the executable and required
-libraries into memory, establishes the process environment, and transfers
-control through the language implementation to `main`. A compiler driver such
-as `cc` normally runs several of these tools for us, but we can stop after each
-stage:
+在 run time，operating system loader 將 executable 與所需的
+libraries 映射到 memory，建立 process environment，並
+透過 language implementation 將控制權交給 `main`。像
+`cc` 這樣的 compiler driver 通常會替我們執行其中幾個工具，但也可以在各個
+階段結束後停止：
 
 ```sh
 cc -std=c17 -E hello.c -o hello.i  # preprocessed C
@@ -132,49 +132,49 @@ cc -std=c17 -c hello.c -o hello.o
 cc hello.o -o hello
 ```
 
-The command-line pieces used this week mean:
+本週使用的 command-line 各部分含義如下：
 
-| Command or option | Purpose |
+| Command 或 option | 用途 |
 |-------------------|---------|
-| `cc` | run the system's C compiler driver |
-| `-std=c17` | select the C17 language version |
-| `-Wall -Wextra -Wpedantic` | request useful warning groups |
-| `-g` | retain information used by a debugger |
-| `-o filename` | name the output file |
-| `-E` | stop after preprocessing |
-| `-S` | stop after producing assembly text |
-| `-c` | stop after producing an object file |
-| `-O0` | minimize optimization so source structure is easier to observe |
-| `-O2` | enable a substantial, commonly used optimization level |
-| `./hello` | run the file named `hello` from the current directory |
+| `cc` | 執行系統的 C compiler driver |
+| `-std=c17` | 選擇 C17 language version |
+| `-Wall -Wextra -Wpedantic` | 啟用有用的 warning groups |
+| `-g` | 保留 debugger 使用的資訊 |
+| `-o filename` | 指定 output file 名稱 |
+| `-E` | 在 preprocessing 後停止 |
+| `-S` | 在產生 assembly text 後停止 |
+| `-c` | 在產生 object file 後停止 |
+| `-O0` | 將 optimization 降至最低，方便觀察 source 結構 |
+| `-O2` | 啟用常用且程度較高的 optimization level |
+| `./hello` | 從目前目錄執行名為 `hello` 的檔案 |
 
 <details>
-<summary>Side note — what the four build artifacts look like</summary>
+<summary>補充 — 四種 build artifacts 的樣貌</summary>
 
-Use the complete `hello.c` program in the live-build section below. The first
-two outputs are text files that can be read in an editor. The last two are
-binary files, so inspect them with development tools rather than printing their
-raw bytes in the terminal. On success, these four `cc` commands normally print
-nothing: the result is the file named after `-o`. The commands below make each
-result observable.
+使用下方現場 build 章節中的完整 `hello.c` 程式。前
+兩個 outputs 是可在 editor 中閱讀的 text files。後兩個是
+binary files，因此請使用開發工具檢視，不要在 terminal 中印出它們的
+raw bytes。成功時，這四個 `cc` commands 通常不會印出
+任何內容：結果就是 `-o` 後指定名稱的檔案。下列 commands 讓每個
+結果都能被觀察。
 
-#### 1. Preprocessed C: `hello.i`
+#### 1. Preprocessed C：`hello.i`
 
 ```sh
 cc -std=c17 -E hello.c -o hello.i
 ```
 
-The preprocessor expands directives before ordinary C compilation. In
-particular, `#include <stdio.h>` is replaced by declarations provided by the
-implementation. The resulting file is usually much longer than `hello.c`.
-Search for the program's own function instead of reading from the beginning:
+preprocessor 會在一般 C compilation 前展開 directives。尤其是
+`#include <stdio.h>`，會被 implementation 提供的 declarations
+取代。產生的檔案通常比 `hello.c` 長得多。
+搜尋程式自己的 function，不必從頭開始閱讀：
 
 ```sh
 grep -n "int twice" hello.i
 ```
 
-Here, `grep -n` prints matching text together with its line number. The start
-of `hello.i` commonly contains lines similar to these:
+這裡的 `grep -n` 會印出符合的文字及其行號。
+`hello.i` 的開頭通常包含類似以下的行：
 
 ```text
 # 1 "hello.c"
@@ -182,10 +182,10 @@ of `hello.i` commonly contains lines similar to these:
 # 1 "/.../include/stdio.h" 1 3 4
 ```
 
-Lines beginning with `#` are **line markers**. They let later diagnostics refer
-back to the appropriate source or header even though preprocessing combined
-many files. Paths and trailing marker numbers are implementation-specific.
-Farther down, a small excerpt still resembles the original C:
+以 `#` 開頭的行是 **line markers**。即使 preprocessing 合併了
+多個檔案，它們仍讓後續 diagnostics 能對應到適當的 source 或 header。
+Paths 與尾端的 marker numbers 依 implementation 而異。
+在較後面的地方，仍有一小段看起來像原本的 C：
 
 ```c
 int twice(int value);
@@ -196,28 +196,28 @@ int main(void) {
 }
 ```
 
-The original `#include <stdio.h>` line is no longer an instruction to include a
-file: declarations from that header now appear in the translation unit. Macro
-uses have also been replaced by their expansions, and comments may have been
-removed. Function bodies, declarations, and expressions are still C—not
-assembly or machine code. The exact header declarations and line-marker
-spellings are not course material; the portable observation is that
-preprocessing produces another C translation unit.
+原本的 `#include <stdio.h>` 已不再是要求包含
+檔案的 instruction：該 header 的 declarations 現在已出現在 translation unit 中。Macro
+的使用處也已被 expansions 取代，comments 可能已被
+移除。Function bodies、declarations 與 expressions 仍然是 C，
+而非 assembly 或 machine code。確切的 header declarations 與 line-marker
+寫法不是課程要求；可跨平台觀察到的是，
+preprocessing 會產生另一個 C translation unit。
 
-#### 2. Assembly text: `hello.s`
+#### 2. Assembly text：`hello.s`
 
 ```sh
 cc -std=c17 -O0 -S hello.c -o hello.s
 ```
 
-The compiler translates the preprocessed C into assembly for the current
-machine. Locate the function labels with:
+compiler 將 preprocessed C 轉換為目前
+機器的 assembly。使用以下 command 找出 function labels：
 
 ```sh
 grep -n "twice" hello.s
 ```
 
-An illustrative ARM/macOS excerpt may contain:
+示意用的 ARM/macOS 片段可能包含：
 
 ```text
         .globl  _main
@@ -237,49 +237,49 @@ _twice:
         .asciz  "%d\n"
 ```
 
-This output mixes instructions with assembler directives:
+這個 output 同時包含 instructions 與 assembler directives：
 
-- `.globl` makes a symbol visible to the linker;
-- `_main:` and `_twice:` are labels naming instruction locations;
-- `bl` calls another function and `ret` returns on this ARM target;
-- `lsl` shifts bits left and can implement multiplication by two; and
-- `.asciz` stores the format string followed by its terminating zero byte.
+- `.globl` 讓 linker 能看見 symbol；
+- `_main:` 與 `_twice:` 是標示 instruction 位置的 labels；
+- 在這個 ARM target 上，`bl` 呼叫另一個 function，`ret` 則返回；
+- `lsl` 將 bits 向左移，可用來實作乘以二；以及
+- `.asciz` 儲存 format string，並在其後接上結尾的 zero byte。
 
-An x86 compiler may instead use labels without leading underscores, `call` for
-a function call, and different registers or arithmetic instructions. Even at
-`-O0`, the compiler need not translate each C operator into an instruction with
-the same name: selecting a shift for multiplication by two preserves the C
-result. At this stage, identify function boundaries, calls, and constants; do
-not memorize one target's instruction spelling.
+x86 compiler 可能改用沒有前導 underscores 的 labels、以 `call` 表示
+function call，並使用不同的 registers 或 arithmetic instructions。即使在
+`-O0` 下，compiler 也不必將每個 C operator 轉換為
+同名 instruction：用 shift 實作乘以二，仍能保留 C 的
+結果。在這個階段，辨識 function boundaries、calls 與 constants 即可；
+不要背誦某個 target 的 instruction 寫法。
 
-#### 3. Relocatable object file: `hello.o`
+#### 3. Relocatable object file：`hello.o`
 
 ```sh
 cc -std=c17 -c hello.c -o hello.o
 ```
 
-`hello.o` contains encoded machine instructions, data, a symbol table, and
-information that the linker still needs. The `file` command describes the
-binary without dumping it:
+`hello.o` 包含編碼後的 machine instructions、data、symbol table，以及
+linker 仍需要的資訊。`file` command 可以描述
+binary，而不直接傾印內容：
 
 ```sh
 file hello.o
 nm hello.o
 ```
 
-Representative `file` descriptions include:
+具代表性的 `file` 描述包括：
 
 ```text
 hello.o: Mach-O 64-bit object arm64
 hello.o: ELF 64-bit LSB relocatable, x86-64, ...
 ```
 
-The important word is `relocatable`: code and data exist, but their final
-addresses are not yet fixed. The object is not a complete executable and still
-contains references for the linker to resolve.
+關鍵字是 `relocatable`：code 與 data 已存在，但最終
+addresses 還沒確定。這個 object 不是完整的 executable，仍然
+包含等待 linker 解析的 references。
 
-The `nm` command lists symbols known to the object file. A representative
-macOS result is:
+`nm` command 會列出 object file 已知的 symbols。具代表性的
+macOS 結果如下：
 
 ```text
 0000000000000000 T _main
@@ -288,45 +288,45 @@ macOS result is:
 0000000000000060 s l_.str
 ```
 
-The left column contains offsets written in hexadecimal. In the middle column,
-`T` identifies a globally visible symbol defined in the code section, `U`
-means undefined in this object, and lowercase `s` commonly identifies a local
-section symbol. Thus `main` and `twice` have code here, whereas `printf` must be
-connected to the C library during linking. Linux commonly omits the leading
-underscores and may use somewhat different symbol letters. Symbol spelling and
-offsets are evidence from one toolchain, not source-level C rules.
+左欄是以 hexadecimal 表示的 offsets。在中間欄位，
+`T` 表示定義於 code section、全域可見的 symbol，`U`
+表示在此 object 中尚未定義，小寫 `s` 則通常表示 local
+section symbol。因此 `main` 與 `twice` 的 code 在此，而 `printf` 必須在
+linking 時連接到 C library。Linux 通常省略前導
+underscores，symbol letters 也可能略有不同。Symbol 寫法與
+offsets 是某個 toolchain 的證據，並非 source-level C 規則。
 
-The link step combines and relocates the relevant pieces and connects external
-references to libraries. With dynamic linking, part of that connection is
-recorded for the loader to finish when the program starts.
+link 步驟會合併並重新定位相關部分，將 external
+references 連接到 libraries。採用 dynamic linking 時，部分連接資訊會
+先被記錄，等程式啟動時由 loader 完成。
 
-#### 4. Linked executable: `hello`
+#### 4. Linked executable：`hello`
 
 ```sh
 cc hello.o -o hello
 ```
 
-The linker resolves the remaining references and produces a file that the
-operating system can load. Inspect and then run it:
+linker 解析剩餘的 references，產生 operating system
+能載入的檔案。先檢視，再執行：
 
 ```sh
 file hello
 ./hello
 ```
 
-Representative descriptions include:
+具代表性的描述包括：
 
 ```text
 hello: Mach-O 64-bit executable arm64
 hello: ELF 64-bit LSB pie executable, x86-64, ...
 ```
 
-Unlike the relocatable object, this file contains the metadata required to
-start a process. It is usually larger than `hello.o` because it also contains
-headers, loader information, and other link-time metadata. File sizes vary and
-are not a measure of how many C statements were written.
+與 relocatable object 不同，這個檔案包含啟動
+process 所需的 metadata。它通常比 `hello.o` 大，因為還包含
+headers、loader information 與其他 link-time metadata。檔案大小會變動，
+不能用來衡量撰寫了多少 C statements。
 
-Running the program and then inspecting the shell's saved exit status gives:
+執行程式，再檢視 shell 儲存的 exit status，會得到：
 
 ```text
 $ ./hello
@@ -335,43 +335,43 @@ $ echo $?
 0
 ```
 
-The line `42` is ordinary program output written by `printf`; the newline in
-`"%d\n"` moves the terminal to the next line. The program does not print the
-final zero. The shell stores that status because `main` returned `0`, and
-`echo $?` displays it. A nonzero status conventionally reports failure.
+`42` 是 `printf` 寫出的普通 program output；
+`"%d\n"` 中的 newline 讓 terminal 移到下一行。程式不會印出
+最後的零。shell 儲存此 status，是因為 `main` 回傳 `0`，
+而 `echo $?` 會顯示它。依慣例，nonzero status 表示失敗。
 
-The complete progression is:
+完整流程如下：
 
-| Artifact | Representation | Useful inspection | What is still missing? |
+| Artifact | Representation | 適用的檢視方式 | 還缺少什麼？ |
 |----------|----------------|-------------------|------------------------|
-| `hello.i` | preprocessed C text | editor, `grep` | C compilation |
-| `hello.s` | target assembly text | editor, `grep` | assembly into binary instructions |
-| `hello.o` | relocatable binary object | `file`, `nm` | final addresses and external definitions |
-| `hello` | linked executable binary | `file`, `./hello` | nothing before normal loading and execution |
+| `hello.i` | preprocessed C text | editor、`grep` | C compilation |
+| `hello.s` | target assembly text | editor、`grep` | 將 assembly 轉成 binary instructions |
+| `hello.o` | relocatable binary object | `file`、`nm` | 最終 addresses 與 external definitions |
+| `hello` | linked executable binary | `file`、`./hello` | 在正常 loading 與 execution 前已無缺少的步驟 |
 
 </details>
 
-> **Try it now [Core live] — name the artifact (2 minutes):** without running
-> the commands, write the expected output filename after each line. Then run
-> them later with the complete `hello.c` program below and correct your
-> predictions. Which command produces something that can be executed directly?
+> **立即練習 [課堂核心] — 說出 artifact 名稱（2 分鐘）：**先不要執行
+> commands，在每行後面寫下預期的 output filename。稍後使用
+> 下方完整的 `hello.c` 程式執行這些 commands，並修正你的
+> 預測。哪個 command 產生的東西可以直接執行？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-| Command stops after | Output | Directly executable? |
+| Command 停止的階段 | Output | 能直接執行嗎？ |
 |---------------------|--------|----------------------|
-| Preprocessing | `hello.i` | No |
-| Compilation to assembly | `hello.s` | No |
-| Assembly to object code | `hello.o` | No |
-| Linking | `hello` | Yes |
+| Preprocessing | `hello.i` | 否 |
+| Compilation 到 assembly | `hello.s` | 否 |
+| Assembly 到 object code | `hello.o` | 否 |
+| Linking | `hello` | 是 |
 
-The compiler driver command that performs the complete build also produces the
-executable named by `-o`.
+執行完整 build 的 compiler driver command 也會產生
+由 `-o` 指定名稱的 executable。
 
-**Expected terminal output:** the four successful `cc` commands normally print
-nothing; each writes the file named after `-o`. After linking, running the
-program produces:
+**預期 terminal output：**這四個成功的 `cc` commands 通常不會印出
+任何內容；各自寫入 `-o` 後指定名稱的檔案。完成 linking 後，執行
+程式會產生：
 
 ```text
 42
@@ -379,28 +379,28 @@ program produces:
 
 </details>
 
-A program that compiles with a warning is not necessarily safe. Read the first
-diagnostic, locate the referenced source, and decide whether the code or the
-stated contract is wrong.
+編譯時出現 warning 的程式不一定安全。閱讀第一個
+diagnostic，找出它指向的 source，判斷是 code 還是
+所述 contract 有問題。
 
-> **Minimum takeaway for the first reading:** source code is checked and
-> translated before it runs; the linker combines separately translated pieces;
-> and failures at compilation, linking, and execution are different evidence.
-> You do not need to memorize file suffixes, loader details, or assembly
-> instructions yet. Use the commands above to observe the stages and return to
-> their lower-level details after writing the first C program.
+> **初讀時至少要掌握：**source code 會先經過檢查與
+> 轉換才執行；linker 將分別轉換的部分合併；
+> compilation、linking 與 execution 階段的 failures 是不同的證據。
+> 目前不必背誦 file suffixes、loader 細節或 assembly
+> instructions。用上述 commands 觀察各個 stages，等寫完
+> 第一個 C 程式後，再回頭閱讀較低層的細節。
 
 ---
 
-### Hour 1 live build: classify the diagnostic
+### 第 1 小時現場 build：分類 diagnostic
 
-Start from the first program below and introduce one defect at a time:
+從下方第一個程式開始，每次只引入一個 defect：
 
-The line `int twice(int value);` is a **declaration**: it tells the compiler the
-function's name, parameter type, and result type before the call is compiled.
-The later braced block is the **definition** that supplies the work. This
-minimal distinction is enough to observe compilation and linking today; Week 2
-develops function contracts, parameter passing, and decomposition in detail.
+`int twice(int value);` 是 **declaration**：在 call 被編譯前，先告訴 compiler
+function 的名稱、parameter type 與 result type。
+後方以 braces 包住的區塊是 **definition**，提供實際操作。這個
+最基本的區別已足夠用來觀察今天的 compilation 與 linking；第 2 週會
+詳細說明 function contracts、parameter passing 與 decomposition。
 
 ```c
 #include <stdio.h>
@@ -417,86 +417,86 @@ int twice(int value) {
 }
 ```
 
-#### Try it now [Core live] — locate the failure stage (10 minutes)
+#### 立即練習 [課堂核心] — 找出 failure stage（10 分鐘）
 
-1. Remove the semicolon after `return value * 2`. Which stage rejects the
-   program first?
-2. Keep the prototype but remove the definition. Which stage now fails?
-3. Run `cc -E` and locate the original source among preprocessed declarations.
-4. Run `cc -S`, find the code for `twice`, and then compare it with an `-O2`
-   build without expecting a line-for-line correspondence.
-5. Run `cc -c`, inspect the object filename, and link it in a separate command.
+1. 移除 `return value * 2` 後的 semicolon。哪個 stage 最先拒絕這個
+   程式？
+2. 保留 prototype，但移除 definition。現在是哪個 stage 失敗？
+3. 執行 `cc -E`，在 preprocessed declarations 中找出原始 source。
+4. 執行 `cc -S`，找出 `twice` 的 code，再與 `-O2`
+   build 比較，但不要預期會逐行對應。
+5. 執行 `cc -c`，檢視 object filename，再用另一個 command 進行 link。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-1. The missing semicolon makes the C translation unit syntactically invalid, so
-   compilation fails before an object file is produced.
-2. The call agrees with the visible declaration, so compilation can succeed.
-   Linking fails because no linked object supplies the definition of `twice`.
-3. `hello.i` contains the included declarations plus recognizable lines from
-   the original file.
-4. An unoptimized build normally contains code corresponding to `twice`; an
-   optimized build may simplify or inline the call while preserving the result.
-5. `cc -c hello.c -o hello.o` produces `hello.o`, and
-   `cc hello.o -o hello` produces the executable.
+1. 缺少 semicolon 讓 C translation unit 的 syntax 無效，因此
+   compilation 會在產生 object file 前失敗。
+2. call 符合可見的 declaration，因此 compilation 可以成功。
+   Linking 會失敗，因為沒有任何已連結的 object 提供 `twice` 的 definition。
+3. `hello.i` 包含引入的 declarations，以及可辨識的
+   原始檔案內容。
+4. 未經 optimization 的 build 通常含有對應 `twice` 的 code；
+   經 optimization 的 build 可能簡化或 inline 該 call，同時保留結果。
+5. `cc -c hello.c -o hello.o` 產生 `hello.o`，而
+   `cc hello.o -o hello` 產生 executable。
 
-**Representative diagnostics and output:** diagnostic wording depends on the
-compiler and linker, but the observations should have this form:
+**具代表性的 diagnostics 與 output：**diagnostic 的用詞依
+compiler 與 linker 而異，但觀察結果應符合以下形式：
 
-| Experiment | Representative terminal evidence | Runtime output |
+| 實驗 | 具代表性的 terminal 證據 | Runtime output |
 |------------|----------------------------------|----------------|
-| Missing semicolon | `error: expected ';' after return statement` | None; compilation stops |
-| Missing definition | `undefined reference to 'twice'` or `Undefined symbols ... _twice` | None; linking stops |
-| Valid restored program | Successful build commands are silent | `42` |
+| 缺少 semicolon | `error: expected ';' after return statement` | 無；compilation 停止 |
+| 缺少 definition | `undefined reference to 'twice'` 或 `Undefined symbols ... _twice` | 無；linking 停止 |
+| 已還原的有效程式 | 成功的 build commands 不會印出內容 | `42` |
 
-The `-E`, `-S`, and `-c` commands also normally print nothing when successful;
-their observable outputs are `hello.i`, `hello.s`, and `hello.o`.
+`-E`、`-S` 與 `-c` commands 成功時通常也不會印出內容；
+可觀察到的 outputs 分別是 `hello.i`、`hello.s` 與 `hello.o`。
 
 </details>
 
-Students should record the stage, diagnostic evidence, and smallest repair. The
-goal is not to memorize messages but to locate responsibility in the pipeline.
+學生應記錄 stage、diagnostic 證據與最小修正。
+目標是找出 pipeline 中負責的環節，而非背誦訊息。
 
 ---
 
-### Assembly is an observation window
+### Assembly 是觀察視窗
 
-> **Supporting observation:** use generated assembly as evidence that C is
-> translated, but do not memorize instruction names, executable sections, or
-> machine-specific encodings. The translation stages and diagnostic categories
-> are the required ideas.
+> **輔助觀察：**使用產生的 assembly 作為 C 經過
+> 轉換的證據，但不要背誦 instruction 名稱、executable sections 或
+> 特定機器的 encodings。必須掌握的是轉換 stages 與 diagnostic
+> 類別。
 
-Generated assembly exposes the compiler's choices, not a portable translation
-recipe. Instruction names, register names, symbol spelling, calling conventions,
-and section names depend on the target architecture, object format, compiler,
-options, and optimization level. On an x86 target, `-masm=intel` may request
-Intel syntax; it is not meaningful for every target.
+產生的 assembly 揭示 compiler 的選擇，並不是可跨平台套用的轉換
+步驟。Instruction 名稱、register 名稱、symbol 寫法、calling conventions，
+以及 section 名稱，都取決於 target architecture、object format、compiler、
+options 與 optimization level。在 x86 target 上，`-masm=intel` 可要求
+Intel syntax；但並非每個 target 都適用。
 
-An object declared outside every function has **static storage duration**: it
-exists for the entire execution of the program and is initialized to zero when
-no initializer is written. An ordinary block-local object has **automatic
-storage duration**: it exists while execution is in that block and has no
-automatic initial value. At file scope, the keyword `static` also keeps the
-name private to this source file. These lifetime rules are the C concepts; the
-section names below are only common implementation evidence.
+宣告在所有 functions 之外的 object 具有 **static storage duration**：
+它存在於程式的整段 execution 期間，且未寫
+initializer 時會初始化為零。一般 block-local object 具有 **automatic
+storage duration**：execution 位於該 block 期間它才存在，且沒有
+自動指定的初始值。在 file scope，keyword `static` 也會讓
+名稱只供此 source file 使用。這些 lifetime 規則才是 C 的概念；
+下方的 section 名稱只是常見的 implementation 證據。
 
-Common object-file regions make C storage duration visible:
+常見的 object-file 區域讓 C storage duration 變得可觀察：
 
-| Common section | Typical contents |
+| 常見 section | 典型內容 |
 |----------------|------------------|
-| `.text` | executable machine instructions |
-| `.rodata` | read-only constants, including some string literals |
-| `.data` | writable static-storage objects with nonzero initial data |
-| `.bss` | zero-initialized static-storage objects represented compactly |
+| `.text` | 可執行的 machine instructions |
+| `.rodata` | read-only constants，包含部分 string literals |
+| `.data` | 具有 nonzero initial data 的可寫 static-storage objects |
+| `.bss` | 以精簡方式表示的 zero-initialized static-storage objects |
 
-These names are common in ELF-based systems, not promises made by C. An
-uninitialized or explicitly zero-initialized object with static storage duration
-starts as zero even when the executable does not store every zero byte. An
-automatic local variable has different duration and is not initialized merely
-because a platform happens to obtain stack memory from the operating system.
+這些名稱常見於 ELF-based systems，並非 C 的保證。具有 static storage duration、
+未初始化或明確初始化為零的 object，
+即使 executable 沒有儲存每個 zero byte，也會從零開始。
+automatic local variable 的 duration 不同，不會只因
+平台恰好向 operating system 取得 stack memory 就被初始化。
 
-Compile this file with both `-O0 -S` and `-O2 -S`:
+分別使用 `-O0 -S` 與 `-O2 -S` 編譯這個檔案：
 
 ```c
 static int zero_count;
@@ -512,38 +512,38 @@ int add_one(int value) {
 }
 ```
 
-#### Try it now [Extension] — observe without memorizing (4 minutes)
+#### 立即練習 [延伸] — 觀察而不背誦（4 分鐘）
 
-At `-O0`, locate evidence for the two static objects and both calculations. At
-`-O2`, determine which names or storage locations remain and which may have
-been replaced by constants or simpler instructions. Which semantic observations
-remain true even when instruction sequences, registers, and labels differ?
+在 `-O0` 下，找出兩個 static objects 與兩項計算的證據。在
+`-O2` 下，判斷哪些名稱或 storage locations 仍存在，哪些可能已被
+constants 或較簡單的 instructions 取代。即使 instruction sequences、
+registers 與 labels 不同，哪些 semantic 觀察仍然成立？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Because both objects are read by `counts_total`, a typical `-O0` assembly file
-retains `zero_count` in a zero-initialized region such as `.bss` and
-`initial_count` in `.data`. At `-O2`, the compiler can prove that their sum is
-always seven in this translation unit; it may make `counts_total` return that
-constant and omit both private objects. Similarly, the named local `result` may
-have no memory location in optimized `add_one`.
+由於 `counts_total` 會讀取兩個 objects，典型的 `-O0` assembly file
+會把 `zero_count` 保留在 `.bss` 等 zero-initialized region，並把
+`initial_count` 保留在 `.data`。在 `-O2` 下，compiler 能證明它們在
+此 translation unit 中的總和永遠是七；它可能讓 `counts_total` 回傳這個
+constant，並省略兩個 private objects。同樣地，具名 local `result` 在
+經 optimization 的 `add_one` 中，可能沒有 memory location。
 
-The portable observations are that `counts_total()` returns seven and, whenever
-the mathematical result is representable as an `int`, `add_one(value)` returns
-one more than `value`. Exact sections, symbols, registers, and instruction
-sequences are implementation evidence rather than C language guarantees.
+可跨平台成立的觀察是：`counts_total()` 回傳七，且只要
+數學結果能以 `int` 表示，`add_one(value)` 就回傳
+比 `value` 多一的值。確切的 sections、symbols、registers 與 instruction
+sequences 是 implementation 證據，而非 C language 的保證。
 
-**Runtime output:** none. This source intentionally has no `main` function and
-is translated only with `-S`. Its output is the assembly file. A typical `-O0`
-file contains storage or symbol evidence for both objects and instructions for
-both functions; an `-O2` file may contain only simplified function bodies.
+**Runtime output：**無。這個 source 刻意不含 `main` function，
+只使用 `-S` 轉換。它的 output 是 assembly file。典型的 `-O0`
+檔案含有兩個 objects 的 storage 或 symbol 證據，以及兩個 functions 的
+instructions；`-O2` 檔案則可能只含簡化的 function bodies。
 
 </details>
 
 ---
 
-### 3. First program
+### 3. 第一個程式
 
 ```c
 #include <stdio.h>
@@ -555,72 +555,72 @@ int main(void) {
 }
 ```
 
-#### Try it now [Core live] — edit, compile, run (3 minutes)
+#### 立即練習 [課堂核心] — 修改、編譯、執行（3 分鐘）
 
-Change `courses_completed` to match your own experience and change the printed
-label without changing `%d`. Compile and run the program. Then remove one
-semicolon, predict which translation stage rejects the file, and restore it.
+修改 `courses_completed`，使其符合你的經驗，並修改印出的
+label，但不要改動 `%d`。編譯並執行程式。接著移除一個
+semicolon，預測哪個轉換 stage 會拒絕該檔案，再將它還原。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-One possible edit is:
+一種可能的修改如下：
 
 ```c
 int courses_completed = 2;
 printf("Previous programming courses: %d\n", courses_completed);
 ```
 
-Your number and wording may differ. `%d` remains correct because the matching
-argument is still an `int`. Removing a required semicolon makes compilation
-fail; restoring it makes the translation unit syntactically valid again.
+你的數字與文字可能不同。`%d` 仍然正確，因為對應的
+argument 仍是 `int`。移除必要的 semicolon 會使 compilation
+失敗；還原後，translation unit 的 syntax 就再次有效。
 
-**Expected output for the shown edit:**
+**上述修改的預期輸出：**
 
 ```text
 Previous programming courses: 2
 ```
 
-Before that edit, the original program prints:
+修改前，原始程式印出：
 
 ```text
 Programming courses completed: 1
 ```
 
-With the semicolon removed, there is no runtime output because compilation
-stops with a syntax diagnostic.
+移除 semicolon 後，沒有 runtime output，因為 compilation
+會因 syntax diagnostic 而停止。
 
 </details>
 
-- `#include <stdio.h>` makes the declarations of standard I/O functions known.
-- `int main(void)` defines the program entry point. Here `void` says that this
-  version accepts no arguments, and `int` says that it reports an exit status.
-- Braces delimit a block; semicolons terminate statements.
-- `int courses_completed` declares storage and its interpretation.
-- Returning zero conventionally reports success to the operating system.
+- `#include <stdio.h>` 讓 standard I/O functions 的 declarations 可見。
+- `int main(void)` 定義程式的 entry point。此處 `void` 表示這個
+  版本不接受 arguments，而 `int` 表示它會回報 exit status。
+- Braces 界定 block；semicolons 結束 statements。
+- `int courses_completed` 宣告 storage 及其解讀方式。
+- 依慣例，回傳零向 operating system 表示成功。
 
 ---
 
-## Hour 2 — Types, representation, conversion, and formatted I/O
+## 第 2 小時 — Types、representation、conversion 與 formatted I/O
 
-> **Hour 2 route:** [types and expressions](#4-types-and-expressions)
-> → [operators](#basic-operators-and-precedence)
-> → [division and conversion](#integer-division-and-conversion)
+> **第 2 小時路線：**[types 與 expressions](#4-types-與-expressions)
+> → [operators](#基本-operators-與-precedence)
+> → [division 與 conversion](#integer-division-與-conversion)
 > → [truth values](#truth-values)
-> → [integer ranges](#supporting-reference--integer-ranges-and-signedunsigned-interactions)
+> → [integer ranges](#補充參考--integer-ranges-與-signedunsigned-交互作用)
 > → [formatted I/O](#5-formatted-io)
-> → [format contracts](#format-contract-reference)
-> → [checkpoint](#try-it-now-core-live--hour-2-checkpoint-5-minutes)
+> → [format contracts](#format-contract-參考)
+> → [檢核點](#立即練習-課堂核心--第-2-小時檢核點5-分鐘)
 
-### 4. Types and expressions
+### 4. Types 與 expressions
 
-The core scalar types for the first week are:
+第一週的核心 scalar types 如下：
 
-- `char` stores one character-sized integer value;
-- `int` is the ordinary whole-number type;
-- `double` stores a floating-point approximation; and
-- `_Bool` stores zero or one. In C17, `<stdbool.h>` supplies the more readable
-  spellings `bool`, `false`, and `true` for `_Bool`, zero, and one.
+- `char` 儲存一個 character 大小的 integer value；
+- `int` 是一般的 whole-number type；
+- `double` 儲存 floating-point approximation；以及
+- `_Bool` 儲存零或一。在 C17 中，`<stdbool.h>` 提供較容易閱讀的
+  `bool`、`false` 與 `true` 寫法，分別對應 `_Bool`、零與一。
 
 ```c
 #include <stdbool.h>
@@ -631,32 +631,32 @@ double average = 87.5;
 bool passed = true;
 ```
 
-To observe the `char`, `int`, and `double` values, use the `printf` function
-introduced in the first program. Its first argument is a format string; each
-conversion beginning with `%` describes the corresponding value that follows
-it:
+若要觀察 `char`、`int` 與 `double` values，請使用 `printf` function，
+它已在第一個程式介紹。第一個 argument 是 format string；每個
+以 `%` 開頭的 conversion 描述其後對應的 value：
+如下表所示。
 
-| C value type | First output conversion | Meaning |
+| C value type | 首個 output conversion | 含義 |
 |--------------|-------------------------|---------|
-| `int` | `%d` | print a decimal integer |
-| `double` | `%.1f` | print one digit after the decimal point |
-| `char` | `%c` | print the character |
+| `int` | `%d` | 印出 decimal integer |
+| `double` | `%.1f` | 印出 decimal point 後一位數字 |
+| `char` | `%c` | 印出 character |
 
-The complete format-contract reference later in this hour covers input and
-additional types.
+本小時稍後的完整 format-contract 參考涵蓋 input 與
+其他 types。
 
-#### Try it now [Core live] — choose a representation (2 minutes)
+#### 立即練習 [課堂核心] — 選擇 representation（2 分鐘）
 
-Use the earlier first program as a scaffold. Add variables for a whole-number
-student count, a fractional temperature, and a letter grade. Choose the type
-before the initial value, then print them with `%d`, `%.1f`, and `%c`,
-respectively, following the table above. Compile and run; do not copy
-demonstration variables that your program does not use.
+使用前面的第一個程式作為 scaffold。加入 variables，分別表示整數的
+學生人數、含小數的溫度與字母成績。先選擇 type，
+再設定 initial value，然後依上表分別使用 `%d`、`%.1f` 與 `%c`
+印出它們。編譯並執行；不要複製
+程式不會使用的示範 variables。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-One possible program is:
+一種可能的程式如下：
 
 ```c
 #include <stdio.h>
@@ -671,28 +671,28 @@ int main(void) {
 }
 ```
 
-The exact values may differ. The types express the important promises: a whole
-number, a fractional numeric value, and one character.
+實際 values 可以不同。Types 表達了重要的保證：whole
+number、帶有小數的 numeric value，以及一個 character。
 
-**Expected output for the shown complete program:**
+**上述完整程式的預期輸出：**
 
 ```text
 students=40 temperature=26.5 grade=A
 ```
 
-The earlier declaration-only fragment does not print by itself; the output
-appears only after the solution passes those values to `printf`.
+先前只有 declarations 的片段本身不會印出內容；只有在
+解答將這些 values 傳給 `printf` 後，才會出現 output。
 
 </details>
 
-Use `sizeof value` to ask how many bytes an object occupies. Except for `char`,
-the exact size of basic types can depend on the implementation.
+使用 `sizeof value` 詢問 object 佔用多少 bytes。除了 `char`，
+基本 types 的確切大小可能取決於 implementation。
 
-> **Supporting type names:** `size_t` is the unsigned type used for object sizes
-> and becomes important for arrays in Week 2. Exact-width types such as
-> `int32_t` belong in code whose external data contract requires exactly that
-> width; they are reference material rather than default replacements for
-> `int`.
+> **補充 type 名稱：**`size_t` 是用於 object sizes 的 unsigned type，
+> 在第 2 週的 arrays 中會變得重要。像
+> `int32_t` 這樣的 exact-width types，適用於 external data contract 要求恰好具有該
+> width 的 code；它們是參考材料，而非預設用來取代
+> `int` 的選擇。
 
 ```c
 #include <stddef.h>
@@ -703,34 +703,34 @@ int32_t exact_width = 1000;
 ```
 
 <details>
-<summary>Output note — declarations alone do not print values</summary>
+<summary>Output 說明 — 只有 declarations 不會印出 values</summary>
 
-**Runtime output:** none. These lines declare and initialize two objects, but
-they do not call an output function. If they are placed in a complete program,
-the program produces output only when later statements pass their values to an
-operation such as `printf`.
+**Runtime output：**無。這些行宣告並初始化兩個 objects，卻
+沒有呼叫 output function。即使把它們放進完整程式，
+也要等後續 statements 將它們的 values 傳給
+`printf` 等 operation，程式才會產生 output。
 
 </details>
 
 ---
 
-### Basic operators and precedence
+### 基本 operators 與 precedence
 
-The underlying operations are familiar from Python, but several spellings and
-type rules differ. Start with these groups:
+底層 operations 與熟悉的 Python 類似，但部分寫法與
+type 規則不同。先從以下幾組開始：
 
-| Purpose | C operators | Important rule |
+| 用途 | C operators | 重要規則 |
 |---------|-------------|----------------|
-| Arithmetic | `+`, `-`, `*`, `/`, `%` | `/` uses the operand types; `%` requires integer operands |
-| Comparison | `<`, `<=`, `>`, `>=`, `==`, `!=` | the result is `0` or `1` |
-| Logic | `&&`, `\|\|`, `!` | `&&` and `\|\|` short-circuit from left to right |
-| Assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=` | a compound assignment reads, computes, and stores |
-| Change by one | `++`, `--` | these modify an object; initially use them as separate statements |
+| Arithmetic | `+`, `-`, `*`, `/`, `%` | `/` 依 operand types 運算；`%` 要求 integer operands |
+| Comparison | `<`, `<=`, `>`, `>=`, `==`, `!=` | 結果是 `0` 或 `1` |
+| Logic | `&&`, `\|\|`, `!` | `&&` 與 `\|\|` 由左至右進行 short-circuit |
+| Assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=` | compound assignment 會讀取、計算並儲存 |
+| 加減一 | `++`, `--` | 它們會修改 object；初學時請作為獨立 statements 使用 |
 
-Multiplication, division, and remainder bind more tightly than addition and
-subtraction. Comparison happens after arithmetic, `&&` after comparison, and
-`||` after `&&`. Parentheses are preferable whenever the intended grouping is
-not immediately obvious:
+Multiplication、division 與 remainder 的結合優先於 addition 與
+subtraction。Comparison 在 arithmetic 之後，`&&` 在 comparison 之後，
+`||` 又在 `&&` 之後。只要預期的 grouping 不是
+一目了然，就優先使用 parentheses：
 
 ```c
 int quotient = 7 / 3;          /* 2: both operands are int */
@@ -743,23 +743,23 @@ score += 5;                    /* score is now 15 */
 ++score;                       /* score is now 16 */
 ```
 
-#### Try it now [Core live] — predict before printing (3 minutes)
+#### 立即練習 [課堂核心] — 印出前先預測（3 分鐘）
 
-Put this fragment in `main`, then change the two divisions to `11 / 4` and
-`11 % 4`; change the precedence pair to `5 + 2 * 6` and `(5 + 2) * 6`; and
-initialize `score` to 7 before adding 4 and incrementing it. Print the five
-final values with `%d` and predict them before running.
+將這個片段放入 `main`，再將兩個 division 相關運算改成 `11 / 4` 與
+`11 % 4`；將 precedence 對照組改成 `5 + 2 * 6` 與 `(5 + 2) * 6`；並
+將 `score` 初始化為 7，再加 4 並 increment。印出五個
+最終 values 時使用 `%d`，並在執行前先預測。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The modified values are `quotient == 2`, `remainder == 3`,
-`precedence == 17`, `grouped == 42`, and `score == 12`. In the unparenthesized
-expression, multiplication happens first. Parentheses make the addition happen
-first in the second expression.
+修改後的 values 是 `quotient == 2`、`remainder == 3`、
+`precedence == 17`、`grouped == 42` 與 `score == 12`。沒有 parentheses 的
+expression 先執行 multiplication。第二個 expression 的 parentheses 讓 addition
+先執行。
 
-**One possible output line:** if the five values are printed in the order used
-above with spaces between them, the output is:
+**一種可能的 output 行：**若依上述順序印出五個 values，
+並以空格分隔，output 為：
 
 ```text
 2 3 17 42 12
@@ -767,72 +767,72 @@ above with spaces between them, the output is:
 
 </details>
 
-Prefix and postfix `++`/`--` differ when their value is used inside a larger
-expression. That distinction is rarely worth the reduced readability in an
-introductory program: prefer a separate `++index;` or `--count;` statement and
-do not modify the same object multiple times in one expression.
+Prefix 與 postfix `++`/`--` 在較大的
+expression 中使用其 value 時，行為不同。在入門程式中，這種差異很少值得犧牲
+可讀性：優先使用獨立的 `++index;` 或 `--count;` statement，
+不要在同一個 expression 中多次修改同一個 object。
 
 ---
 
-### Integer division and conversion
+### Integer division 與 conversion
 
 ```c
 double wrong = 5 / 2;         /* 2.0: division happened as int */
 double right = (double)5 / 2; /* 2.5 */
 ```
 
-#### Try it now [Core live] — move the conversion (2 minutes)
+#### 立即練習 [課堂核心] — 移動 conversion（2 分鐘）
 
-Print both values with one digit after the decimal point. Then try the pairs
-`-5` and `2`, and `5` and `-2`, predicting each result before running. Finally,
-move the cast from the numerator to the denominator and determine whether that
-changes the result.
+印出兩個 values，保留 decimal point 後一位。接著測試兩組 operands：
+`-5` 與 `2`，以及 `5` 與 `-2`，每次都先預測再執行。最後，
+將 cast 從 numerator 移到 denominator，判斷這樣是否
+改變結果。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-For positive operands, `wrong` prints `2.0` and `right` prints `2.5`. Integer
-division in C truncates toward zero, so `-5 / 2` and `5 / -2` both produce `-2`
-before conversion to `double`; placing the cast before division produces
-`-2.5`. Casting either operand to `double` is sufficient, so
-`5 / (double)2` also produces `2.5`.
+對正數 operands，`wrong` 印出 `2.0`，`right` 印出 `2.5`。C 的 Integer
+division 朝零截斷，所以 `-5 / 2` 與 `5 / -2` 都先產生 `-2`，
+再轉成 `double`；在 division 前加上 cast，則產生
+`-2.5`。將任一 operand cast 為 `double` 都足夠，因此
+`5 / (double)2` 也產生 `2.5`。
 
-**Expected output:** with `printf("%.1f %.1f\n", wrong, right)`, the three
-operand pairs produce:
+**預期輸出：**使用 `printf("%.1f %.1f\n", wrong, right)`，三組
+operand pairs 會產生：
 
-| Operands | Output |
+| Operands | 輸出 |
 |----------|--------|
-| `5` and `2` | `2.0 2.5` |
-| `-5` and `2` | `-2.0 -2.5` |
-| `5` and `-2` | `-2.0 -2.5` |
+| `5` 與 `2` | `2.0 2.5` |
+| `-5` 與 `2` | `-2.0 -2.5` |
+| `5` 與 `-2` | `-2.0 -2.5` |
 
 </details>
 
-Conversions in C can discard information. Compile with warnings and make a
-conversion explicit when it is intentional.
+C 的 Conversions 可能丟失資訊。啟用 warnings 編譯，若 conversion 是刻意的，
+就明確寫出來。
 
-Integer remainder follows the same division rule. For a nonzero divisor, when
-the quotient is representable, C chooses `/` and `%` so that:
+Integer remainder 遵循相同的 division 規則。對 nonzero divisor，只要
+quotient 可表示，C 就選擇 `/` 與 `%`，使得：
 
 ```text
 (left / right) * right + left % right == left
 ```
 
-Integer division truncates toward zero, so a nonzero remainder has the same
-sign as the left operand. For example, `-5 / 2` is `-2` and `-5 % 2` is `-1`.
-This also explains why testing `value % 2 == 0` correctly recognizes even
-negative integers. Division or remainder by zero is undefined. Signed division
-also requires a representable quotient; the integer-range reference below
-describes the important boundary case.
+Integer division 朝零截斷，因此 nonzero remainder 與左側
+operand 同號。例如 `-5 / 2` 是 `-2`，`-5 % 2` 是 `-1`。
+這也解釋了為什麼測試 `value % 2 == 0` 能正確辨識偶數的
+negative integers。以零進行 division 或 remainder 是 undefined。Signed division
+也要求 quotient 可表示；下方的 integer-range 參考
+會說明重要的 boundary case。
 
 ---
 
 ### Truth values
 
-In a condition, zero is false and any nonzero scalar value is true. Relational
-and logical operators produce `0` or `1`. An `if` statement evaluates the
-parenthesized condition and executes its first braced block when that condition
-is true. An optional `else` supplies the alternative block.
+在 condition 中，零是 false，任何 nonzero scalar value 都是 true。Relational
+與 logical operators 產生 `0` 或 `1`。`if` statement 會計算
+parentheses 內的 condition；若 condition 為 true，執行第一個
+以 braces 包住的 block。可選的 `else` 提供另一個 block。
 
 ```c
 int age = 18;
@@ -840,14 +840,14 @@ bool has_id = true;
 bool eligible = age >= 18 && has_id;
 ```
 
-#### Try it now [Core live] — test the boundary (2 minutes)
+#### 立即練習 [課堂核心] — 測試 boundary（2 分鐘）
 
-Add an `if`/`else` that prints `eligible` or `not eligible`. Run the four
-combinations formed by ages 17 and 18 and ID values `false` and `true`. Identify
-which part of the expression rejects each unsuccessful case.
+加入 `if`/`else`，印出 `eligible` 或 `not eligible`。執行由
+年齡 17、18 及 ID values `false`、`true` 組成的四種組合。指出
+每個未通過案例是被 expression 的哪個部分拒絕。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 if (eligible) {
@@ -857,13 +857,13 @@ if (eligible) {
 }
 ```
 
-Only age 18 with `has_id == true` is eligible. At age 17, the left operand of
-`&&` is false, so short-circuit evaluation does not need the right operand. At
-age 18 without an ID, the right operand is false.
+只有年齡 18 且 `has_id == true` 才符合資格。年齡 17 時，
+`&&` 的左 operand 為 false，因此 short-circuit evaluation 不需要右 operand。
+年齡 18 但沒有 ID 時，右 operand 為 false。
 
-**Expected output:**
+**預期輸出：**
 
-| `age` | `has_id` | Output |
+| `age` | `has_id` | 輸出 |
 |-------|----------|--------|
 | `17` | `false` | `not eligible` |
 | `17` | `true` | `not eligible` |
@@ -872,19 +872,19 @@ age 18 without an ID, the right operand is false.
 
 </details>
 
-Do not confuse assignment (`=`) with comparison (`==`).
+不要混淆 assignment（`=`）與 comparison（`==`）。
 
 ---
 
-### Supporting reference — integer ranges and signed/unsigned interactions
+### 補充參考 — integer ranges 與 signed/unsigned 交互作用
 
-For the first reading, remember that C integer types have finite ranges and
-that the types of both operands affect a calculation. The exact limit macros
-and mixed signed/unsigned conversion rules below are useful diagnostic
-references, but the extension exercises need not be completed during the core
-lecture path.
+初讀時，記住 C integer types 具有有限的 ranges，且
+兩個 operands 的 types 都會影響計算。下方確切的 limit macros
+與 mixed signed/unsigned conversion 規則是有用的 diagnostic
+參考，但延伸練習不必在核心
+課堂路線中完成。
 
-Connect `sizeof` to the limits headers rather than assuming a fixed machine:
+將 `sizeof` 與 limits headers 連結，而不要假設使用固定的機器：
 
 ```c
 #include <limits.h>
@@ -894,28 +894,28 @@ printf("int: %zu bytes, range %d through %d\n", sizeof(int), INT_MIN, INT_MAX);
 printf("unsigned int maximum: %u\n", UINT_MAX);
 ```
 
-#### Try it now [Extension] — ask the implementation (2 minutes)
+#### 立即練習 [延伸] — 詢問 implementation（2 分鐘）
 
-Place the calls inside `main`, then extend the program to print `long` size and
-range using `LONG_MIN` and `LONG_MAX`. Use `%zu` for the result of `sizeof` and
-`%ld` for the two `long` limits. Do not guess that `long` has the same size as
-`int`; compile and let the current implementation answer.
+將 calls 放入 `main`，再擴充程式，印出 `long` 的 size 與
+range，使用 `LONG_MIN` 與 `LONG_MAX`。用 `%zu` 印出 `sizeof` 的結果，
+用 `%ld` 印出兩個 `long` limits。不要猜測 `long` 與
+`int` 大小相同；編譯，讓目前的 implementation 回答。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Add this inside `main` after including `<limits.h>` and `<stdio.h>`:
+在 `main` 中加入以下內容；請先引入 `<limits.h>` 與 `<stdio.h>`：
 
 ```c
 printf("long: %zu bytes, range %ld through %ld\n", sizeof(long), LONG_MIN,
        LONG_MAX);
 ```
 
-The numerical size and limits are implementation results. They must be read
-from the program's output rather than assumed from another machine.
+數值的 size 與 limits 是 implementation 的結果。必須從
+程式的 output 讀取，不能沿用其他機器的假設。
 
-**Illustrative output on a common 64-bit Unix-like system:** including the two
-original calls and the added `long` call gives:
+**常見 64-bit Unix-like system 上的示意輸出：**包含原本兩個
+calls 與新增的 `long` call，會得到：
 
 ```text
 int: 4 bytes, range -2147483648 through 2147483647
@@ -923,17 +923,17 @@ unsigned int maximum: 4294967295
 long: 8 bytes, range -9223372036854775808 through 9223372036854775807
 ```
 
-This exact line is not portable. A conforming implementation may give `long`
-a different size and range; the program's own output is the answer for the
-current environment.
+這個確切結果無法跨平台保證。符合標準的 implementation 可以讓 `long`
+具有不同的 size 與 range；程式自身的 output 才是
+目前環境的答案。
 
 </details>
 
-Unsigned arithmetic wraps modulo one more than the maximum value. Signed
-overflow is undefined behavior. On a typical two's-complement implementation,
-`INT_MIN / -1` and `INT_MIN % -1` are also undefined because the mathematical
-quotient is not representable as an `int`. Mixing signed and unsigned values
-can convert a negative number to a very large unsigned value:
+Unsigned arithmetic 以最大值加一為 modulus 進行 wrap。Signed
+overflow 是 undefined behavior。在典型的 two's-complement implementation 上，
+`INT_MIN / -1` 與 `INT_MIN % -1` 也都是 undefined，因為數學上的
+quotient 無法以 `int` 表示。混用 signed 與 unsigned values
+可能將負數轉換為非常大的 unsigned value：
 
 ```c
 #include <stddef.h>
@@ -950,25 +950,25 @@ int main(void) {
 }
 ```
 
-#### Try it now [Extension] — expose the mixed-domain bug (3 minutes)
+#### 立即練習 [延伸] — 顯示 mixed-domain bug（3 分鐘）
 
-Uncomment the comparison and compile with the course warning flags. Predict the
-result first. Repair the comparison by choosing types that represent the same
-intended domain; do not add a cast merely to silence the warning.
+取消 comparison 的 comment，並使用課程 warning flags 編譯。先預測
+結果。選擇能表示相同預期 domain 的 types 來修正 comparison；
+不要只為了消除 warning 而加入 cast。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 printf("%d\n", index < count);
 ```
 
-On common current implementations, the comparison prints zero because `index`
-is converted to `size_t`; converting `-1` to that unsigned type produces its
-maximum value, which is not less than 10. With the course warning flags, common
-compilers diagnose that two different numeric domains are being mixed. If this
-small problem genuinely uses `-1` as a sentinel and all counts fit in `int`,
-one coherent repair is:
+在目前常見的 implementations 上，comparison 印出零，因為 `index`
+被轉換為 `size_t`；將 `-1` 轉換為該 unsigned type，會得到其
+最大值，而最大值不小於 10。使用課程 warning flags 時，常見的
+compilers 會診斷出兩個不同的 numeric domains 被混用。若這個
+小問題確實用 `-1` 作為 sentinel，且所有 counts 都能以 `int` 表示，
+一種一致的修正如下：
 
 ```c
 int index = -1;
@@ -976,21 +976,21 @@ int count = 10;
 printf("%d\n", index < count);
 ```
 
-For a real container API, a separate success flag or another explicit absence
-representation is often clearer than mixing a negative sentinel with an
-unsigned size.
+對實際的 container API，獨立的 success flag 或其他明確的 absence
+representation，通常比將 negative sentinel 與
+unsigned size 混用更清楚。
 
-**Representative output on the common implementations described above:** the
-original mixed-type program prints its values first and, after the comparison
-is uncommented, prints zero:
+**上述常見 implementations 的具代表性 output：**原本的
+mixed-type 程式先印出 values，在取消 comparison 的
+comment 後，印出零：
 
 ```text
 index=-1 count=10
 0
 ```
 
-After changing `count` to `int`, the repaired comparison is between two signed
-values and prints:
+將 `count` 改成 `int` 後，修正的 comparison 比較兩個 signed
+values，並印出：
 
 ```text
 1
@@ -998,37 +998,37 @@ values and prints:
 
 </details>
 
-#### Supporting reference — integer literal suffixes
+#### 補充參考 — integer literal suffixes
 
-An integer-literal suffix participates in the expression's type. The suffix
-`U` means “choose an unsigned integer type”; for the small literals `0U` and
-`1U`, that type is `unsigned int`. Therefore both operands in `0U - 1U` are
-unsigned, and the subtraction wraps to `UINT_MAX`. Related suffixes include
-`L`, `LL`, and combinations such as `ULL`. Use a suffix when the required type
-is part of the contract, not merely to silence a conversion warning.
+integer-literal suffix 會參與決定 expression 的 type。Suffix
+`U` 表示「選擇 unsigned integer type」；對較小的 literals `0U` 與
+`1U`，該 type 是 `unsigned int`。因此 `0U - 1U` 的兩個 operands 都是
+unsigned，subtraction 會 wrap 到 `UINT_MAX`。相關 suffixes 包括
+`L`、`LL`，以及 `ULL` 等組合。當所需的 type
+屬於 contract 的一部分時，才使用 suffix，不要只為了消除 conversion warning。
 
-Do not “fix” every warning with a cast. First decide which domain the
-program means. Loop indices for array sizes commonly use `size_t`; values that
-must represent `-1` need a signed type or a different absence representation.
+不要用 cast「修正」每個 warning。先判斷
+程式要表示哪個 domain。Array sizes 的 loop indices 通常使用 `size_t`；
+必須表示 `-1` 的 values，則需要 signed type 或不同的 absence representation。
 
 ---
 
 ### 5. Formatted I/O
 
-Every C program starts with three standard text streams:
+每個 C 程式啟動時都有三個 standard text streams：
 
-- `stdin` supplies ordinary input;
-- `stdout` receives ordinary output; and
-- `stderr` receives diagnostics separately from ordinary output.
+- `stdin` 提供一般 input；
+- `stdout` 接收一般 output；以及
+- `stderr` 接收 diagnostics，與一般 output 分開。
 
-`scanf` reads from `stdin`, and `printf` writes to `stdout`. The related call
-`fprintf(stderr, ...)` uses the same style of format string as `printf` but
-sends the message to the diagnostic stream. This separation matters to an
-online judge because diagnostics must not become part of the required answer.
-In every formatted call, the conversion specifiers must agree with the
-corresponding argument types. Returning zero from `main` reports success;
-returning a nonzero value reports that the program could not complete its
-contract.
+`scanf` 從 `stdin` 讀取，`printf` 寫入 `stdout`。相關的 call
+`fprintf(stderr, ...)` 使用與 `printf` 相同形式的 format string，但
+將訊息送到 diagnostic stream。對 online judge 而言，
+這個區分很重要，因為 diagnostics 不能成為要求答案的一部分。
+每個 formatted call 中，conversion specifiers 都必須符合
+對應的 argument types。從 `main` 回傳零表示成功；
+回傳 nonzero value 則表示程式無法完成其
+contract。
 
 ```c
 int score = 95;
@@ -1036,34 +1036,34 @@ double ratio = 0.875;
 printf("score=%d ratio=%.2f\n", score, ratio);
 ```
 
-#### Try it now [Core live] — control the presentation (1 minute)
+#### 立即練習 [課堂核心] — 控制呈現方式（1 分鐘）
 
-Change the precision from two digits after the decimal point to four, then add
-a descriptive label before each value. Confirm that formatting changes the
-output text but not the stored `ratio`.
+將 precision 從 decimal point 後兩位改成四位，再於
+每個 value 前加入描述性 label。確認 formatting 只改變
+output 文字，不改變儲存的 `ratio`。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
 ```c
 printf("student score=%d success ratio=%.4f\n", score, ratio);
 ```
 
-The output becomes `student score=95 success ratio=0.8750`. The additional
-digits and labels affect presentation only; `ratio` remains the same `double`.
+output 變成 `student score=95 success ratio=0.8750`。新增的
+位數與 labels 只影響呈現；`ratio` 仍是相同的 `double`。
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 student score=95 success ratio=0.8750
 ```
 
-Before the requested formatting change, the original call prints
-`score=95 ratio=0.88` under the ordinary round-to-nearest environment.
+進行指定的 formatting 修改前，在一般的 round-to-nearest 環境下，原本的 call 印出
+`score=95 ratio=0.88`。
 
 </details>
 
-For simple judge input, check the result of `scanf`:
+對簡單的 judge input，請檢查 `scanf` 的結果：
 
 ```c
 int a;
@@ -1075,18 +1075,18 @@ if (scanf("%d %d", &a, &b) != 2) {
 printf("%d\n", a + b);
 ```
 
-#### Try it now [Core live] — test the input contract (3 minutes)
+#### 立即練習 [課堂核心] — 測試 input contract（3 分鐘）
 
-Place the fragment inside `main` in a program that includes `<stdio.h>`. Run it
-with `10 20`, then with `10 x`, and finally with only one integer followed by
-end-of-file. Record the `scanf` result for each case by temporarily storing it
-in an `int conversions` variable. Restore the concise condition after you
-understand the three outcomes.
+將片段放入 `main` 中，並在程式引入 `<stdio.h>`。依序使用
+`10 20`、`10 x`，以及只有一個 integer 隨即
+end-of-file 的 input 執行。暫時將每個案例的 `scanf` 結果存入
+`int conversions` variable 並記錄。理解三種結果後，
+還原精簡的 condition。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The diagnostic version begins as follows:
+diagnostic 版本的開頭如下：
 
 ```c
 int conversions = scanf("%d %d", &a, &b);
@@ -1097,80 +1097,80 @@ if (conversions != 2) {
 }
 ```
 
-Input `10 20` produces two conversions and allows the sum to be printed.
-`10 x` converts only the first integer, so the count is one. One integer
-followed by end-of-file also produces one conversion. An immediate end-of-file
-would produce `EOF`, not a successful conversion count.
+Input `10 20` 產生兩次 conversions，允許印出總和。
+`10 x` 只轉換第一個 integer，因此 count 是一。一個 integer
+後接 end-of-file，也只產生一次 conversion。若一開始就遇到 end-of-file，
+會產生 `EOF`，而不是成功的 conversion count。
 
-**Expected output by stream:** assume the original sum statement remains after
-the diagnostic fragment. The numeric value used for `EOF` is implementation-
-defined and is commonly `-1`.
+**各 stream 的預期輸出：**假設原本計算總和的 statement 保留在
+diagnostic 片段後方。`EOF` 使用的 numeric value 屬於 implementation-
+defined，通常是 `-1`。
 
 | Input | Standard output | Standard error | Exit status |
 |-------|-----------------|----------------|-------------|
-| `10 20` | `conversions=2` followed by `30` | None | `0` |
+| `10 20` | `conversions=2` 後接 `30` | 無 | `0` |
 | `10 x` | `conversions=1` | `expected two integers` | nonzero |
-| `10` then EOF | `conversions=1` | `expected two integers` | nonzero |
-| Immediate EOF | `conversions=<EOF value>` | `expected two integers` | nonzero |
+| `10` 後接 EOF | `conversions=1` | `expected two integers` | nonzero |
+| 一開始即遇到 EOF | `conversions=<EOF value>` | `expected two integers` | nonzero |
 
 </details>
 
-`scanf` needs the **addresses** of `a` and `b` so it can modify them. We will
-explain addresses in the Week 4 lecture notes. Until then, treat the format
-string and each corresponding argument as a checked pair.
+`scanf` 需要 `a` 與 `b` 的 **addresses**，才能修改它們。我們會在
+第 4 週課堂講義解釋 addresses。在此之前，將 format
+string 與每個對應的 argument 視為一組需要檢查的配對。
 
 ---
 
-### Format-contract reference
+### Format-contract 參考
 
 | Value type | `printf` | `scanf` |
 |------------|----------|---------|
-| `int` | `%d` | `%d` with `&integer_variable` |
-| `unsigned int` | `%u` | `%u` with `&unsigned_variable` |
-| `long` | `%ld` | `%ld` with `&long_variable` |
-| `long long` | `%lld` | `%lld` with `&long_long_variable` |
-| `size_t` | `%zu` | `%zu` with `&size_variable` |
-| `double` | `%f` | `%lf` with `&double_variable` |
-| character | `%c` | `%c` with `&character_variable` |
-| `bool` | `%d` after integer promotion | No direct conversion; read and validate an `int` |
+| `int` | `%d` | `%d` 搭配 `&integer_variable` |
+| `unsigned int` | `%u` | `%u` 搭配 `&unsigned_variable` |
+| `long` | `%ld` | `%ld` 搭配 `&long_variable` |
+| `long long` | `%lld` | `%lld` 搭配 `&long_long_variable` |
+| `size_t` | `%zu` | `%zu` 搭配 `&size_variable` |
+| `double` | `%f` | `%lf` 搭配 `&double_variable` |
+| character | `%c` | `%c` 搭配 `&character_variable` |
+| `bool` | integer promotion 後使用 `%d` | 沒有直接的 conversion；讀取並驗證 `int` |
 
-For `printf`, a `float` argument is promoted to `double`, so `%f` is used. For
-`scanf`, `%f` requires the address of a `float`, while `%lf` requires the
-address of a `double`. This asymmetry is a common source of memory corruption.
-String and pointer formatting are introduced only after Week 2 establishes
-array representation and Week 4 establishes the pointer model.
+對 `printf`，`float` argument 會 promoted 成 `double`，因此使用 `%f`。對
+`scanf`，`%f` 要求 `float` 的 address，而 `%lf` 要求
+`double` 的 address。這種不對稱是 memory corruption 的常見來源。
+String 與 pointer formatting 要等第 2 週建立
+array representation、第 4 週建立 pointer model 後才介紹。
 
-When a `bool` is passed to `printf`, it is promoted to `int`, so `%d` prints
-zero or one. Do not pass a `bool*` to `scanf` with `%d`: `%d` requires an
-`int*`. Read into an `int`, validate the accepted values, and then assign the
-result to a `bool`.
+將 `bool` 傳給 `printf` 時，會 promoted 成 `int`，所以 `%d` 印出
+零或一。不要將 `bool*` 傳給 `scanf` 的 `%d`：`%d` 要求
+`int*`。先讀入 `int`，驗證允許的 values，再將
+結果指派給 `bool`。
 
-#### Try it now [Extension] — interpret a format warning (2 minutes)
+#### 立即練習 [延伸] — 解讀 format warning（2 分鐘）
 
-Return to the Hour 1 `twice` program. Change only the output conversion from
-`%d` to `%f`, then compile with the course warning flags. What type does `%f`
-require, what type does `twice(21)` produce, and why should you restore the
-correct conversion before running the program?
+回到第 1 小時的 `twice` 程式。只將 output conversion 從
+`%d` 改為 `%f`，再使用課程 warning flags 編譯。`%f` 要求什麼 type？
+`twice(21)` 產生什麼 type？為何應在執行程式前還原
+正確的 conversion？
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-For `printf`, `%f` requires a corresponding `double`, while `twice` is declared
-to return `int`. A warning-enabled compiler can therefore diagnose the mismatch.
-`printf` relies on the format string to decide how to interpret every following
-argument. Supplying the wrong type gives the call **undefined behavior**, which
-means C specifies no required result; Section 7 develops that concept. An
-apparently plausible output would not make the call correct. Restore `%d`
-because the program intends to print the integer result of `twice(21)`.
+對 `printf`，`%f` 要求對應的 `double`，但 `twice` 宣告為
+回傳 `int`。啟用 warnings 的 compiler 因此能診斷此 mismatch。
+`printf` 依賴 format string 來決定如何解讀後續的每個
+argument。提供錯誤的 type 會使 call 具有 **undefined behavior**，
+表示 C 沒有規定必須產生什麼結果；第 7 節會深入說明此概念。
+看似合理的 output 也不能讓 call 變得正確。請還原 `%d`，
+因為程式的目的是印出 `twice(21)` 的 integer 結果。
 
-**Runtime output of the defective program:** none should be requested; do not
-run it. A representative compilation diagnostic is:
+**有缺陷程式的 Runtime output：**不應嘗試取得；不要
+執行它。具代表性的 compilation diagnostic 如下：
 
 ```text
 warning: format specifies type 'double' but the argument has type 'int'
 ```
 
-After `%d` is restored, the warning disappears and the program prints:
+還原 `%d` 後，warning 消失，程式印出：
 
 ```text
 42
@@ -1178,17 +1178,17 @@ After `%d` is restored, the warning disappears and the program prints:
 
 </details>
 
-#### Try it now [Extension] — build a format checklist (2 minutes)
+#### 立即練習 [延伸] — 建立 format 檢查表（2 分鐘）
 
-Choose five rows from the table, including `size_t` and `bool`, and write a
-single `printf` call that prints them. Add one `scanf` call for a `double`.
-Exchange the code with a partner and check every specifier against its
-corresponding argument before compiling.
+從表格選擇五列，包含 `size_t` 與 `bool`，並撰寫
+單一 `printf` call 印出它們。加入一個 `scanf` call，讀取 `double`。
+與同伴交換 code，在編譯前檢查每個 specifier 是否符合
+對應的 argument。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-One possible checklist program is:
+一種可能的檢查表程式如下：
 
 ```c
 #include <stdbool.h>
@@ -1214,10 +1214,10 @@ int main(void) {
 }
 ```
 
-The important review is positional: each conversion specifier must match the
-type of the corresponding argument.
+審查的重點是位置對應：每個 conversion specifier 都必須符合
+對應 argument 的 type。
 
-**Expected output for input `2.5`:**
+**Input `2.5` 的預期輸出：**
 
 ```text
 -3 3 5 3.5 1
@@ -1228,9 +1228,9 @@ input=2.5
 
 ---
 
-### Try it now [Core live] — Hour 2 checkpoint (5 minutes)
+### 立即練習 [課堂核心] — 第 2 小時檢核點（5 分鐘）
 
-Predict the type and value before compiling:
+編譯前，先預測 type 與 value：
 
 ```c
 int a = 7;
@@ -1239,23 +1239,23 @@ double x = a / b;
 double y = (double)a / b;
 ```
 
-Then compile a program that prints the four values. Explain why the two
-floating-point results differ instead of stopping after the numerical answer.
+接著編譯一個印出這四個 values 的程式。解釋兩個
+floating-point 結果為何不同，不要只停留在數字答案。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-`a` and `b` are `int`. Integer division therefore produces 3 before `x` stores
-that value as `3.0`. The cast makes one operand of the second division `double`,
-so `y` is `3.5`.
+`a` 與 `b` 是 `int`。因此 Integer division 先產生 3，`x` 再將
+該 value 儲存為 `3.0`。Cast 使第二次 division 的一個 operand 變成 `double`，
+所以 `y` 是 `3.5`。
 
-A matching output statement is:
+對應的 output statement 如下：
 
 ```c
 printf("a=%d b=%d x=%.1f y=%.1f\n", a, b, x, y);
 ```
 
-**Expected output:**
+**預期輸出：**
 
 ```text
 a=7 b=2 x=3.0 y=3.5
@@ -1265,16 +1265,16 @@ a=7 b=2 x=3.0 y=3.5
 
 ---
 
-## Hour 3 — Selection, iteration, EOF, and judge-style translation
+## 第 3 小時 — Selection、iteration、EOF 與 judge-style 轉換
 
-> **Hour 3 route:** [selection and iteration](#6-selection-and-iteration)
-> → [input-driven loops](#input-driven-loops-and-eof)
-> → [guided translation](#try-it-now-core-live--hour-3-guided-translation-8-minutes)
-> → [undefined behavior](#7-undefined-behavior-is-not-an-exception)
+> **第 3 小時路線：**[selection 與 iteration](#6-selection-與-iteration)
+> → [input-driven loops](#input-driven-loops-與-eof)
+> → [引導式轉換](#立即練習-課堂核心--第-3-小時引導式轉換8-分鐘)
+> → [undefined behavior](#7-undefined-behavior-不是-exception)
 
-### 6. Selection and iteration
+### 6. Selection 與 iteration
 
-Python indentation becomes explicit braces:
+Python indentation 轉換成明確的 braces：
 
 ```python
 limit = 10
@@ -1294,23 +1294,23 @@ for (int value = 1; value <= limit; ++value) {
 }
 ```
 
-A C `for` loop has three control clauses separated by semicolons. Here,
-`int value = 1` runs once before the loop, `value <= limit` is checked before
-each iteration, and `++value` runs after each completed iteration. The `if`
-statement decides whether that iteration updates `total`. Because `value` is
-declared in the `for` statement, its name is available only in that loop.
+C `for` loop 有三個以 semicolons 分隔的 control clauses。在此，
+`int value = 1` 在 loop 前執行一次，`value <= limit` 在
+每次 iteration 前檢查，`++value` 在每次完成的 iteration 後執行。`if`
+statement 決定該 iteration 是否更新 `total`。由於 `value` 是
+在 `for` statement 中宣告，其名稱只能在該 loop 中使用。
 
-#### Try it now [Core live] — change one rule (3 minutes)
+#### 立即練習 [課堂核心] — 改變一個規則（3 分鐘）
 
-Place the C fragment in a complete program with `limit = 10` and print the
-result. Then change it to sum values divisible by three instead of values
-divisible by two. Predict both totals before running the program.
+將 C 片段放進 `limit = 10` 的完整程式，並印出
+結果。接著改成加總可被三整除的 values，取代
+可被二整除的 values。執行程式前，先預測兩個總和。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The original loop sums `2 + 4 + 6 + 8 + 10`, producing 30. The modified loop
-can be written as:
+原本的 loop 加總 `2 + 4 + 6 + 8 + 10`，產生 30。修改後的 loop
+可以寫成：
 
 ```c
 int limit = 10;
@@ -1323,22 +1323,22 @@ for (int value = 1; value <= limit; ++value) {
 printf("%d\n", total);
 ```
 
-It prints 18 because the included values are 3, 6, and 9.
+它印出 18，因為納入的 values 是 3、6 與 9。
 
-**Expected output:**
+**預期輸出：**
 
-| Version | Output |
+| 版本 | 輸出 |
 |---------|--------|
-| Original even-number rule | `30` |
-| Modified divisible-by-three rule | `18` |
+| 原本的偶數規則 | `30` |
+| 修改後的可被三整除規則 | `18` |
 
 </details>
 
-C also provides `while` and `switch`; the next two examples give each construct
-a concrete purpose. A `switch` evaluates its controlling expression once and
-jumps to the matching `case`. The `default` label handles every unmatched
-value, and `break` exits the `switch`. Prefer braces even for a one-statement
-body because they prevent mistakes during later edits.
+C 也提供 `while` 與 `switch`；接下來兩個範例會展示各個 construct 的
+具體用途。`switch` 計算 controlling expression 一次，
+再跳到符合的 `case`。`default` label 處理所有未符合的
+values，`break` 則離開 `switch`。即使 body 只有一個 statement，
+也優先使用 braces，避免後續修改時出錯。
 
 ```c
 char command = 'h';
@@ -1356,18 +1356,18 @@ switch (command) {
 }
 ```
 
-#### Try it now [Extension] — make fallthrough visible (3 minutes)
+#### 立即練習 [延伸] — 讓 fallthrough 可見（3 分鐘）
 
-Place the fragment inside `main` in a program that includes `<stdio.h>`. Add an
-`r` command that prints `reset`. Temporarily omit its `break`, place it before
-the `h` case, and predict both lines printed for `r`. Run once, then restore the
-`break` and confirm that only the intended action remains.
+將片段放入 `main` 中，並在程式引入 `<stdio.h>`。新增一個
+`r` command，讓它印出 `reset`。暫時省略其 `break`，將它放在
+`h` case 前，預測 `r` 會印出的兩行。執行一次，再還原
+`break`，確認只剩下預期的動作。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Without the first `break`, command `r` prints both `reset` and `help` because
-execution continues into the next case. The corrected case is:
+缺少第一個 `break` 時，command `r` 同時印出 `reset` 與 `help`，因為
+execution 會繼續進入下一個 case。修正後的 case 如下：
 
 ```c
 case 'r':
@@ -1378,22 +1378,22 @@ case 'h':
   break;
 ```
 
-With the `break` restored, command `r` prints only `reset`.
+還原 `break` 後，command `r` 只印出 `reset`。
 
-**Expected output for the original example with `command == 'h'`:**
+**原始範例在 `command == 'h'` 時的預期輸出：**
 
 ```text
 help
 ```
 
-**Expected output without the first `break`:**
+**缺少第一個 `break` 時的預期輸出：**
 
 ```text
 reset
 help
 ```
 
-**Expected output after restoring the `break`:**
+**還原 `break` 後的預期輸出：**
 
 ```text
 reset
@@ -1401,35 +1401,35 @@ reset
 
 </details>
 
-Without `break`, execution continues into the next `case`. Use fallthrough only
-when it is deliberate and documented.
+缺少 `break` 時，execution 會繼續進入下一個 `case`。只有在刻意使用
+並有文件說明時，才使用 fallthrough。
 
 ---
 
-### Input-driven loops and EOF
+### Input-driven loops 與 EOF
 
-Judge data sometimes contains an unknown number of records. A `while`
-statement checks its parenthesized condition before every iteration and
-continues only while that condition is true. In Python, iteration over an input
-stream ends naturally. In C, `scanf` reports how many requested conversions
-succeeded, so `scanf("%d", &value) == 1` means “one integer was read; process
-it.”
+Judge data 有時包含數量未知的 records。`while`
+statement 在每次 iteration 前檢查 parentheses 內的 condition，且
+只在 condition 為 true 時繼續。在 Python 中，對 input
+stream 的 iteration 會自然結束。在 C 中，`scanf` 回報要求的 conversions 有多少次
+成功，所以 `scanf("%d", &value) == 1` 表示「已讀取一個 integer；
+處理它」。
 
-For this first example, the input contract allows at most 100 numeric tokens,
-each representable as `int` and within `[-30000, 30000]`. The magnitude of the
-sum can therefore be at most `100 * 30000`, or 3,000,000, which fits in the
-minimum range guaranteed for `long long`. This proof keeps the example focused
-on input-loop behavior. Assume the course judge supplies a readable input
-stream; detecting a device-level I/O error is outside this exercise. The `%d`
-conversion does not provide a safe recovery path when the input denotes a value
-that is not representable as `int`, so representability is an explicit
-precondition here. Week 7 develops a digit-by-digit conversion that checks the
-range before performing each arithmetic step.
+第一個範例的 input contract 允許最多 100 個 numeric tokens，
+每個都能以 `int` 表示，且位於 `[-30000, 30000]`。因此，總和的
+絕對值最多是 `100 * 30000`，也就是 3,000,000，落在
+`long long` 保證的最小 range 內。此證明讓範例聚焦於
+input-loop behavior。假設課程 judge 提供可讀取的 input
+stream；偵測 device-level I/O error 不在本練習範圍。當 input 代表的 value 超出範圍時，`%d`
+conversion 不提供安全的 recovery path；也就是說，若該 value
+無法以 `int` 表示，就沒有安全恢復的保證，所以 representability 在此是明確的
+precondition。第 7 週會發展 digit-by-digit conversion，在每個 arithmetic 步驟前
+檢查 range。
 
-After the loop, `feof(stdin)` is nonzero only if the failed read encountered
-end-of-file. If the next token was not an integer, the conversion count is zero
-and `feof(stdin)` remains zero. The program can therefore distinguish an
-ordinary end of input from an invalid token:
+loop 結束後，`feof(stdin)` 只有在失敗的 read 遇到
+end-of-file 時才是 nonzero。若下一個 token 不是 integer，conversion count 為零，
+`feof(stdin)` 也維持零。因此程式能區分
+一般的 input 結束與 invalid token：
 
 ```c
 #include <stddef.h>
@@ -1462,58 +1462,58 @@ int main(void) {
 }
 ```
 
-#### Try it now [Core live] — drive the loop from the shell (5 minutes)
+#### 立即練習 [課堂核心] — 從 shell 驅動 loop（5 分鐘）
 
-Compile the program, then test it with a valid sequence, an empty input, and a
-sequence containing `x` after two integers. For example, pipe text into the
-program with `printf '10 -2 5\n' | ./program`. Also test a value at each numeric
-boundary, a value just outside a boundary, and a 101st integer. Explain which
-part of the input contract each rejected case violates.
+編譯程式，再測試 valid sequence、empty input，以及
+兩個 integers 後接 `x` 的 sequence。例如，使用
+`printf '10 -2 5\n' | ./program` 將文字 pipe 進程式。也測試每個 numeric
+boundary 上的 value、剛超出 boundary 的 value，以及第 101 個 integer。說明
+每個被拒絕的案例違反了 input contract 的哪個部分。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-- `10 -2 5` reaches end-of-file after three successful conversions and prints
-  `count=3 total=13`.
-- Empty input performs no conversions, reaches end-of-file normally, and prints
-  `count=0 total=0`.
-- `10 -2 x` performs two conversions, then stops at `x`. Because the failure is
-  not end-of-file, the program reports `invalid token after 2 integers` and
-  returns failure.
-- Values `-30000` and `30000` satisfy the inclusive numeric boundary, while
-  either neighboring outside value is rejected.
-- The first 100 integers are processed; a successfully read 101st integer is
-  rejected before it is added to the total.
+- `10 -2 5` 在三次成功的 conversions 後到達 end-of-file，並印出
+  `count=3 total=13`。
+- Empty input 不進行任何 conversions，正常到達 end-of-file，並印出
+  `count=0 total=0`。
+- `10 -2 x` 進行兩次 conversions，接著在 `x` 停止。由於 failure
+  不是 end-of-file，程式回報 `invalid token after 2 integers`，並
+  回傳失敗。
+- Values `-30000` 與 `30000` 符合包含端點的 numeric boundary，
+  而任一緊鄰的外側 value 都會被拒絕。
+- 前 100 個 integers 會被處理；成功讀取的第 101 個 integer，
+  會在加入總和前被拒絕。
 
-EOF is an ordinary end condition for this program. A noninteger token violates
-the input contract and must not be silently treated as the same condition.
+EOF 是此程式一般的結束 condition。Noninteger token 違反
+input contract，不能默默當成相同的 condition 處理。
 
-**Expected output by stream:**
+**各 stream 的預期輸出：**
 
 | Input | Standard output | Standard error | Exit status |
 |-------|-----------------|----------------|-------------|
-| `10 -2 5` | `count=3 total=13` | None | `0` |
-| Empty input | `count=0 total=0` | None | `0` |
-| `10 -2 x` | None | `invalid token after 2 integers` | nonzero |
-| `-30000 30000` | `count=2 total=0` | None | `0` |
-| `30001` | None | `integer is outside the supported range` | nonzero |
-| 101 copies of `1` | None | `too many integers` | nonzero |
+| `10 -2 5` | `count=3 total=13` | 無 | `0` |
+| Empty input | `count=0 total=0` | 無 | `0` |
+| `10 -2 x` | 無 | `invalid token after 2 integers` | nonzero |
+| `-30000 30000` | `count=2 total=0` | 無 | `0` |
+| `30001` | 無 | `integer is outside the supported range` | nonzero |
+| 101 個 `1` | 無 | `too many integers` | nonzero |
 
 </details>
 
-With one requested conversion, `scanf` returns `1` after converting an integer,
-`0` when the next token does not match, or `EOF` when input ends before a
-conversion. Never write `while (!feof(stdin))`: EOF is observed only after a
-read attempt fails, so that pattern commonly processes stale data once.
+只要求一次 conversion 時，`scanf` 在轉換 integer 後回傳 `1`，
+下一個 token 不符合時回傳 `0`，或回傳 `EOF`，表示 input 在
+conversion 前已結束。絕不要寫 `while (!feof(stdin))`：只有 read 嘗試
+失敗後才會觀察到 EOF，因此這種寫法常會多處理一次 stale data。
 
 ---
 
-### Try it now [Core live] — Hour 3 guided translation (8 minutes)
+### 立即練習 [課堂核心] — 第 3 小時引導式轉換（8 分鐘）
 
-Translate the positive-square sum expressed by this Python program. The Python
-version reads one line; the C exercise intentionally generalizes that input to
-whitespace-separated integers continuing until end-of-file. Both versions
-print one answer for valid input:
+轉換這個 Python 程式所表達的正數平方和。Python
+版本讀取一行；C 練習刻意將 input 推廣成
+以 whitespace 分隔、持續到 end-of-file 的 integers。兩個版本
+對 valid input 都印出一個答案：
 
 ```python
 values = [int(token) for token in input().split()]
@@ -1521,28 +1521,28 @@ answer = sum(value * value for value in values if value > 0)
 print(answer)
 ```
 
-Process each integer as it is read, without storing an array. Accept at most 100
-inputs, require every value to be in `[-30000, 30000]`, accumulate into a
-`long long`, and distinguish end-of-file from an invalid token. As with typical
-judge input using `%d`, assume that every numeric token is representable as an
-`int`. Week 7 removes that assumption for its lexer by accumulating digits only
-after checking that each arithmetic step remains representable. Test:
+每讀到一個 integer 就處理，不儲存 array。接受最多 100 個
+inputs，要求每個 value 位於 `[-30000, 30000]`，累加到
+`long long`，並區分 end-of-file 與 invalid token。如同典型
+使用 `%d` 的 judge input，假設每個 numeric token 都能以
+`int` 表示。第 7 週的 lexer 會移除此假設：只有在確認
+每個 arithmetic 步驟的結果仍可表示後，才累加 digits。測試：
 
-- an empty line/end-of-file;
-- all negative values;
-- zero mixed with positives;
-- exactly 100 values;
-- a 101st value;
-- a noninteger token;
-- values at both ends of the stated range.
+- empty line/end-of-file；
+- 全部為負數的 values；
+- 零混合正數；
+- 恰好 100 個 values；
+- 第 101 個 value；
+- 一個 noninteger token；
+- 所述 range 兩端的 values。
 
-The final discussion should distinguish translation of the algorithm from the
-new representation and range decisions demanded by C.
+最後的討論應區分 algorithm 的轉換，以及
+C 要求的新 representation 與 range 決策。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-The following solution implements the explicitly revised stream contract:
+下列解答實作明確修訂後的 stream contract：
 
 ```c
 #include <stddef.h>
@@ -1579,47 +1579,47 @@ int main(void) {
 }
 ```
 
-No array is required because each value contributes once and is never needed
-again. At most 100 squares of 30000 sum to 90,000,000,000, which fits in the
-minimum range guaranteed for `long long`. The input bounds therefore establish
-arithmetic safety without interrupting the central loop with advanced overflow
-formulas.
+不需要 array，因為每個 value 只貢獻一次，之後不再
+需要。最多 100 個 30000 的平方相加為 90,000,000,000，落在
+`long long` 保證的最小 range 內。因此 input bounds 能確保
+arithmetic safety，不必用進階的 overflow formulas
+打斷核心 loop。
 
-**Expected output by stream:**
+**各 stream 的預期輸出：**
 
 | Input | Standard output | Standard error | Exit status |
 |-------|-----------------|----------------|-------------|
-| Empty input | `0` | None | `0` |
-| `-3 -1 0` | `0` | None | `0` |
-| `0 3 4` | `25` | None | `0` |
-| `-30000 30000` | `900000000` | None | `0` |
-| `30001` | None | `value is outside the supported range` | nonzero |
-| `1 x` | None | `invalid integer input` | nonzero |
-| 101 copies of `1` | None | `too many values` | nonzero |
+| Empty input | `0` | 無 | `0` |
+| `-3 -1 0` | `0` | 無 | `0` |
+| `0 3 4` | `25` | 無 | `0` |
+| `-30000 30000` | `900000000` | 無 | `0` |
+| `30001` | 無 | `value is outside the supported range` | nonzero |
+| `1 x` | 無 | `invalid integer input` | nonzero |
+| 101 個 `1` | 無 | `too many values` | nonzero |
 
 </details>
 
 ---
 
-### 7. Undefined behavior is not an exception
+### 7. Undefined behavior 不是 exception
 
-Python normally stops and reports errors such as an out-of-range list access.
-The C standard instead leaves some invalid operations without defined meaning.
-Examples include:
+Python 通常會停止並回報 out-of-range list access 等錯誤。
+C standard 則不為某些 invalid operations 定義意義。
+例如：
 
-- reading an uninitialized automatic variable;
-- signed integer overflow;
-- dividing an integer by zero;
-- accessing storage outside an object's valid bounds, developed with arrays in
-  Week 2;
-- using a mismatched `printf` format.
+- 讀取 uninitialized automatic variable；
+- signed integer overflow；
+- 將 integer 除以零；
+- 存取超出 object 有效 bounds 的 storage，第 2 週會配合 arrays
+  深入說明；
+- 使用不符合的 `printf` format。
 
-The compiler is allowed to assume undefined behavior never occurs. “It worked
-once” is therefore not evidence that the program is correct.
+compiler 可以假設 undefined behavior 永遠不會發生。因此，「曾經
+成功執行一次」不能作為程式正確的證據。
 
-#### Try it now [Extension] — repair before running (4 minutes)
+#### 立即練習 [延伸] — 執行前先修正（4 分鐘）
 
-Put the following fragment in `main`, but **do not run it yet**:
+將以下片段放入 `main`，但**先不要執行**：
 
 ```c
 int denominator = 0;
@@ -1628,15 +1628,15 @@ printf("%d\n", 100 / denominator);
 printf("%d\n", uninitialized_value);
 ```
 
-Identify the two violated preconditions. Modify the inputs or guard the
-operations so that every evaluated division and scalar read is defined. Only
-then compile and run the repaired version.
+找出兩個被違反的 preconditions。修改 inputs 或加上 guard，
+使每個實際計算的 division 與 scalar read 都是 defined。完成後，
+才編譯並執行修正版本。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Integer division requires a nonzero denominator, and an automatic scalar must
-receive a value before it is read. One guarded repair is:
+Integer division 要求 nonzero denominator，automatic scalar 則必須
+先取得 value 才能被讀取。一種使用 guard 的修正如下：
 
 ```c
 int initialized_value = 25;
@@ -1649,11 +1649,11 @@ if (denominator != 0) {
 printf("%d\n", initialized_value);
 ```
 
-The initialization and guard matter because they prevent invalid operations
-from being evaluated; merely printing an error afterward would be too late.
+initialization 與 guard 很重要，因為它們避免 invalid operations
+被計算；事後才印出錯誤訊息就太晚了。
 
-**Expected output with the original `denominator == 0`:** the diagnostic and
-ordinary result are written to different streams.
+**原本 `denominator == 0` 時的預期輸出：**diagnostic 與
+一般結果會寫入不同的 streams。
 
 ```text
 standard error: denominator must not be zero
@@ -1664,12 +1664,12 @@ standard output: 25
 
 ---
 
-## Worked example: classify an integer
+## 完整範例：分類 integer
 
-The `if`/`else` form from Hour 2 can be extended into an `else if` chain. Each
-condition is checked from top to bottom, and only the first true branch runs.
-This program uses the chain to distinguish negative, positive, and zero values,
-then uses a separate `if`/`else` to classify parity:
+第 2 小時的 `if`/`else` 形式可以擴充為 `else if` chain。每個
+condition 由上到下檢查，只有第一個為 true 的 branch 會執行。
+這個程式使用 chain 區分負數、正數與零的 values，
+再用獨立的 `if`/`else` 分類 parity：
 
 ```c
 #include <stdio.h>
@@ -1698,21 +1698,21 @@ int main(void) {
 }
 ```
 
-Trace the condition selected by each input. Why is taking `value % 2` defined
-when `value` is negative? What special output does zero receive? This version
-uses only integer values and control flow. Week 2 introduces character arrays,
-and Week 4 explains pointer-valued references to strings.
+追蹤每個 input 選中的 condition。為何計算 `value % 2` 仍是 defined，
+即使 `value` 是負數？零會得到什麼特殊 output？這個版本
+只使用 integer values 與 control flow。第 2 週介紹 character arrays，
+第 4 週則解釋指向 strings 的 pointer-valued references。
 
-### Try it now [Extension] — extend without duplicating (4 minutes)
+### 立即練習 [延伸] — 擴充而不重複（4 分鐘）
 
-Extend the program so it also reports whether the value is divisible by three.
-Reuse the same `value`; do not add another input operation. Predict and test the
-complete output for `-3`, `0`, `4`, and invalid input.
+擴充程式，讓它也回報 value 是否可被三整除。
+重複使用同一個 `value`；不要新增 input operation。預測並測試
+`-3`、`0`、`4` 與 invalid input 的完整 output。
 
 <details>
-<summary>Reveal solution</summary>
+<summary>展開解答</summary>
 
-Delay the newline after the parity result, then add one more independent test:
+延後 parity 結果後的 newline，再加入一個獨立測試：
 
 ```c
 if (value % 2 == 0) {
@@ -1728,7 +1728,7 @@ if (value % 3 == 0) {
 }
 ```
 
-**Expected output before the extension:** the original classifier produces:
+**延伸前的預期輸出：**原本的 classifier 產生：
 
 ```text
 -3 is negative and odd
@@ -1736,15 +1736,15 @@ if (value % 3 == 0) {
 4 is positive and even
 ```
 
-The resulting descriptions are:
+產生的描述如下：
 
 - `-3 is negative and odd, divisible by three`
 - `0 is zero and even, divisible by three`
 - `4 is positive and even, not divisible by three`
 
-Invalid input still returns before either classification is printed.
+Invalid input 仍會在印出任何 classification 前回傳。
 
-**Expected standard output from three separate valid runs:**
+**三次分別執行有效案例的預期 standard output：**
 
 ```text
 -3 is negative and odd, divisible by three
@@ -1752,41 +1752,41 @@ Invalid input still returns before either classification is printed.
 4 is positive and even, not divisible by three
 ```
 
-For invalid input, standard output is empty and the program returns a nonzero
-status.
+對 invalid input，standard output 為空，程式回傳 nonzero
+status。
 
 </details>
 
 ---
 
-## Check yourself
+## 自我檢核
 
-1. Where does an “undefined reference” diagnostic occur in the pipeline?
-2. What distinct artifacts do `-E`, `-S`, and `-c` produce?
-3. What are the values of `7 / 3` and `(double)7 / 3`?
-4. Why must the argument for `%d` have the expected integer type?
-5. Translate a Python `while` loop that repeatedly reads until `0` into C.
-6. **Extension:** Why can the assembly produced at `-O2` omit a named local
-   variable?
-
----
-
-## Summary
-
-- Your programming knowledge transfers; C exposes types, storage, and failures.
-- A C program is preprocessed, compiled, assembled, linked, and then executed.
-- Generated assembly is target- and option-dependent evidence, not the C
-  language definition.
-- Declarations, format strings, and conversions are contracts.
-- Warnings, exit status, and tests are part of normal development.
-- Avoiding undefined behavior is a correctness requirement.
+1. 「undefined reference」diagnostic 出現在 pipeline 的哪個位置？
+2. `-E`、`-S` 與 `-c` 分別產生哪些不同的 artifacts？
+3. `7 / 3` 與 `(double)7 / 3` 的 values 是多少？
+4. 為什麼 `%d` 的 argument 必須具有預期的 integer type？
+5. 將 Python `while` loop 轉換為 C，使它重複讀取直到遇到 `0`。
+6. **延伸：**為什麼 `-O2` 產生的 assembly 可以省略具名的 local
+   variable？
 
 ---
 
-## References and source materials
+## 重點整理
 
-- [Instructor handout: *From C to Assembly*](../../assets/references/from_c_to_assembly.pdf)
-- [Introduction to programming](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Introduction%20to%20programming/README.md>)
-- [Operators, expressions, and statements](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Operators%2C%20Expressions%2C%20and%20Statements/README.md>)
+- 既有的程式設計知識仍適用；C 讓 types、storage 與 failures 更明確。
+- C 程式先經過 preprocessing、compilation、assembly 與 linking，再 execution。
+- 產生的 assembly 是依 target 與 option 而異的證據，並非 C
+  language 的定義。
+- Declarations、format strings 與 conversions 都是 contracts。
+- Warnings、exit status 與 tests 都是正常開發的一部分。
+- 避免 undefined behavior 是 correctness 的必要條件。
+
+---
+
+## 參考資料與來源教材
+
+- [教師講義：*From C to Assembly*](../../assets/references/from_c_to_assembly.pdf)
+- [程式設計入門](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Introduction%20to%20programming/README.md>)
+- [Operators、expressions 與 statements](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Operators%2C%20Expressions%2C%20and%20Statements/README.md>)
 - [Looping](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Looping/README.md>)
-- [`printf` and `scanf` summary](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Printf%20and%20Scanf/總整理.md>)
+- [`printf` 與 `scanf` 重點整理](<https://github.com/htchen/i2p-nthu/blob/master/程式設計一/Printf%20and%20Scanf/總整理.md>)
